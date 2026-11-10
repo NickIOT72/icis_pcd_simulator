@@ -1,0 +1,2564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Protection & Control Designer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* High contrast light workspace theme */
+    .bg-workspace-canvas {
+      background-color: #ffffff;
+    }
+
+    /* Custom light scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f8fafc; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Custom visible scrollbar for Sidebar Device Grid */
+    #sidebar-device-grid::-webkit-scrollbar { width: 5px; }
+    #sidebar-device-grid::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 4px; }
+    #sidebar-device-grid::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+    #sidebar-device-grid::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+    .bg-grid-pattern {
+      background-size: 20px 20px;
+      background-image: radial-gradient(circle, #cbd5e1 1.5px, transparent 1.5px);
+    }
+    .subview {
+      display: none;
+    }
+    .subview.active {
+      display: flex;
+    }
+  </style>
+</head>
+<body class="bg-workspace-canvas text-slate-800 font-sans antialiased h-screen flex flex-col select-none overflow-hidden">
+
+  <!-- ======================================================== -->
+  <!-- 1. TOP WINDOW BAR & TOP MENU OPTIONS (Light Theme)       -->
+  <!-- ======================================================== -->
+  <header class="bg-slate-100 border-b border-slate-200 flex flex-col shrink-0">
+    <!-- Window Control Bar -->
+    <div class="flex items-center justify-between px-3 py-1.5 border-b border-slate-200 text-xs">
+      <div class="flex items-center gap-3">
+        <!-- Logo & Title -->
+        <div class="flex items-center gap-2">
+          <div class="w-5 h-5 rounded bg-gradient-to-tr from-blue-600 to-emerald-500 flex items-center justify-center shadow-sm">
+            <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+          </div>
+          <span class="font-bold tracking-wider text-black text-xs">Protection & Control Designer</span>
+        </div>
+
+        <div class="h-3 w-px bg-slate-300"></div>
+
+        <!-- Top Menu Options -->
+        <nav class="flex items-center gap-4 text-slate-700 text-xs font-medium">
+          <button class="hover:text-blue-600 transition-colors">File</button>
+          <button class="hover:text-blue-600 transition-colors">Edit</button>
+          <button class="hover:text-blue-600 transition-colors">View</button>
+          <button class="hover:text-blue-600 transition-colors">Toolkits</button>
+          <button class="hover:text-blue-600 transition-colors">Simulation</button>
+          <button class="hover:text-blue-600 transition-colors">libraries</button>
+          <button class="hover:text-blue-600 transition-colors">Window</button>
+          <button class="hover:text-blue-600 transition-colors">Help</button>
+        </nav>
+      </div>
+
+      <!-- Window Action Buttons (Minimize, Maximize, Close) -->
+      <div class="flex items-center gap-2 text-slate-600">
+        <span class="text-[11px] bg-white border border-slate-200 px-2 py-0.5 rounded text-slate-700 font-medium shadow-2xs">v2026.1</span>
+        <div class="flex items-center gap-1 ml-2">
+          <button class="w-5 h-5 rounded hover:bg-slate-200 flex items-center justify-center text-slate-600 hover:text-slate-900 transition-colors" title="Minimize">−</button>
+          <button class="w-5 h-5 rounded hover:bg-slate-200 flex items-center justify-center text-slate-600 hover:text-slate-900 transition-colors" title="Maximize">□</button>
+          <button class="w-5 h-5 rounded hover:bg-rose-500 hover:text-white flex items-center justify-center text-slate-600 transition-colors" title="Close">✕</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Toolbar / Quick Action Bar -->
+    <div class="px-4 py-2 bg-white flex items-center justify-between gap-4 border-b border-slate-200">
+      <div class="flex items-center gap-2">
+        <!-- New Diagram Button -->
+        <button onclick="openNewProjectModal()" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 py-1.5 rounded-lg text-xs shadow-sm transition-all shadow-blue-200">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+          </svg>
+          <span>New Diagram</span>
+        </button>
+
+        <!-- Open File Button -->
+        <button onclick="openProjectTab('pcd-1', 'Substation_San_Martin_115kV.pcd', '⚡', '115 kV Substation', 'DRC: OK')" class="flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg text-xs border border-slate-300 font-medium transition-colors">
+          <svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/>
+          </svg>
+          <span>Open File (.pcd)</span>
+        </button>
+
+        <div class="h-4 w-px bg-slate-200 mx-1"></div>
+
+        <!-- Blocked SPICE & TCC Buttons -->
+        <button disabled class="p-1.5 rounded bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed opacity-40" title="SPICE Simulation Engine (Blocked / Background Mode)">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </button>
+
+        <button disabled class="p-1.5 rounded bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed opacity-40" title="Device Coordination Curves TCC (Blocked / Background Mode)">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Right Side: IC Status Icon -->
+      <div class="flex items-center gap-3">
+        <div id="pg-status-icon" class="w-7 h-7 rounded-full bg-emerald-50 border-2 border-emerald-500 flex items-center justify-center text-xs font-bold text-emerald-700 shadow-sm cursor-help" title="PostgreSQL Database: Connected (Background Sync Active)">
+          IC
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ======================================================== -->
+  <!-- 2. MAIN BODY: LEFT SIDEBAR + SEGMENT 5 (TABS & VIEWPORT)  -->
+  <!-- ======================================================== -->
+  <div class="flex flex-1 overflow-hidden">
+    
+    <!-- LEFT SIDEBAR: TOOLKITS & MODULES (Fixed Frame) -->
+    <aside class="w-56 bg-slate-50 border-r border-slate-200 flex flex-col justify-between shrink-0 p-3">
+      <div class="space-y-4">
+        <!-- Workspaces Navigation -->
+        <div>
+          <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2">Workspaces</span>
+          <nav class="mt-2 space-y-1">
+            <button id="nav-btn-home" onclick="switchSubview('home')" class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg bg-blue-50 text-blue-700 font-semibold text-xs border border-blue-200 transition-all text-left shadow-2xs">
+              <svg class="w-4 h-4 shrink-0 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+              </svg>
+              <span>Home Overview</span>
+            </button>
+
+            <button id="nav-btn-recent" onclick="switchSubview('recent')" class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-slate-700 hover:text-blue-700 hover:bg-slate-100 text-xs font-medium transition-colors text-left">
+              <svg class="w-4 h-4 shrink-0 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              <span>Recent Projects</span>
+            </button>
+
+            <button id="nav-btn-templates" onclick="switchSubview('templates')" class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-slate-700 hover:text-blue-700 hover:bg-slate-100 text-xs font-medium transition-colors text-left">
+              <svg class="w-4 h-4 shrink-0 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+              </svg>
+              <span>Template Library</span>
+            </button>
+          </nav>
+        </div>
+
+        <!-- Tools -->
+        <div>
+          <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2">Tools</span>
+          <nav class="mt-2 space-y-1">
+            <a href="#" onclick="openProjectTab('pcd-1', 'Substation_San_Martin_115kV.pcd', '⚡', '115 kV Substation', 'DRC: OK')" class="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-slate-700 hover:bg-amber-50/60 hover:text-amber-800 text-xs font-medium transition-colors group">
+              <div class="flex items-center gap-2.5">
+                <span class="text-amber-500 font-bold">⚡</span>
+                <span>Single Line Diagram</span>
+              </div>
+              <span class="text-[10px] text-slate-400 group-hover:text-amber-700 font-semibold">Editor</span>
+            </a>
+
+            <a href="#" onclick="openProjectTab('pcd-2', 'Feeder_Industrial_Park_13.8kV.pcd', '🛡️', '13.8 kV Feeder', 'ANSI 51 Coordinated')" class="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-slate-700 hover:bg-blue-50/60 hover:text-blue-800 text-xs font-medium transition-colors group">
+              <div class="flex items-center gap-2.5">
+                <span class="text-blue-600 font-bold">🛡️</span>
+                <span>Relay Coordination</span>
+              </div>
+              <span class="text-[10px] text-slate-400 group-hover:text-blue-700 font-semibold">ANSI 50/51</span>
+            </a>
+
+            <a href="#" class="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-slate-700 hover:bg-emerald-50/60 hover:text-emerald-800 text-xs font-medium transition-colors group">
+              <div class="flex items-center gap-2.5">
+                <span class="text-emerald-600 font-bold">⚙️</span>
+                <span>Short Circuit (IEC/IEEE)</span>
+              </div>
+              <span class="text-[10px] text-slate-400 group-hover:text-emerald-700 font-semibold">Engine</span>
+            </a>
+
+            <a href="#" class="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-slate-700 hover:bg-emerald-50/60 hover:text-emerald-800 text-xs font-medium transition-colors group">
+              <div class="flex items-center gap-2.5">
+                <span class="text-emerald-500 font-bold">📊</span>
+                <span>Load Flow Calculator</span>
+              </div>
+              <span class="text-[10px] text-slate-400 group-hover:text-emerald-700 font-semibold">Newton</span>
+            </a>
+          </nav>
+        </div>
+
+        <!-- Device List & CAD Tools (Hidden on Home tab, visible on active project tabs) -->
+        <div id="sidebar-device-list-section" class="hidden pt-2 border-t border-slate-200">
+          <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2">Device List</span>
+          <!-- Row with 2 buttons aligned in series: blue 'add' and red 'del' -->
+          <div class="mt-2 flex items-center gap-2 px-1">
+            <button id="btn-device-add" onclick="openDeviceLibraryModal()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-2.5 rounded-lg text-xs transition-colors flex items-center justify-center gap-1 shadow-2xs cursor-pointer" title="Add Device from Library">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+              </svg>
+              <span>add</span>
+            </button>
+            <button id="btn-device-del" onclick="clearSelectedDevice()" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-1.5 px-2.5 rounded-lg text-xs transition-colors flex items-center justify-center gap-1 shadow-2xs cursor-pointer" title="Delete / Clear Selected Device">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+              <span>del</span>
+            </button>
+          </div>
+          <!-- Device Grid List View (2 per row in series, CAD symbol + hover tooltip) -->
+          <div class="mt-2 px-1">
+            <div id="sidebar-device-grid" class="grid grid-cols-2 gap-2 max-h-52 overflow-y-scroll p-1.5 border border-slate-300 rounded-lg bg-slate-100/70 select-none">
+              <!-- Dynamically rendered via renderSidebarDeviceGrid() -->
+            </div>
+          </div>
+          <!-- CAD Quick Placement Tools below TextBox -->
+          <div class="mt-2.5 px-1">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">CAD Placement</span>
+            <div class="grid grid-cols-3 gap-1 bg-slate-200/80 p-1 rounded-lg border border-slate-300 text-xs select-none">
+              <button id="tool-btn-select" onclick="setCadTool('select')" class="px-2 py-1 rounded bg-white text-blue-700 font-bold shadow-2xs flex items-center justify-center gap-1 transition-all" title="Selection Tool">
+                <span>↖ Select</span>
+              </button>
+              <button id="tool-btn-bus" onclick="setCadTool('bus')" class="px-2 py-1 rounded hover:bg-slate-100 text-slate-700 font-medium flex items-center justify-center gap-1 transition-all" title="Place Bus Bar">
+                <span>➕ Bus</span>
+              </button>
+              <button id="tool-btn-net" onclick="setCadTool('net')" class="px-2 py-1 rounded hover:bg-slate-100 text-slate-700 font-medium flex items-center justify-center gap-1 transition-all" title="Draw Net / Wire">
+                <span>⚡ Net</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ======================================================== -->
+    <!-- SEGMENT 5: BROWSER-LIKE TAB BAR & DYNAMIC VIEWPORT       -->
+    <!-- ======================================================== -->
+    <main class="flex-1 flex flex-col overflow-hidden bg-workspace-canvas">
+
+      <!-- ====================================================== -->
+      <!-- BROWSER TAB BAR (Static Pinned Tab + Dynamic Tabs)     -->
+      <!-- ====================================================== -->
+      <div id="browser-tab-bar" class="bg-slate-100 border-b border-slate-200 px-3 pt-2 flex items-center justify-between shrink-0 select-none">
+        
+        <!-- Left: Static Pinned Tab + Tab Strip with Scroll Arrows -->
+        <div class="flex items-center gap-1 overflow-hidden flex-1 mr-2">
+          
+          <!-- Static Pinned Tab: Workspace Root (CANNOT BE CLOSED, NO ×) -->
+          <div id="tab-pinned-workspace" onclick="activateWorkspaceTab()" class="tab-item py-1.5 px-3.5 rounded-t-lg border-t-2 border-t-blue-600 border-x border-slate-200 bg-white text-blue-700 font-bold text-xs flex items-center gap-2 cursor-pointer shadow-xs shrink-0 transition-all">
+            <svg class="w-3.5 h-3.5 text-blue-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+            <span id="pinned-tab-title">Workspace / Home</span>
+            <span class="text-[10px] text-blue-400 font-mono ml-0.5" title="Pinned Static Tab">📌</span>
+          </div>
+
+          <div class="h-4 w-px bg-slate-300 mx-1 shrink-0"></div>
+
+          <!-- Tab Scroll Left Arrow Button -->
+          <button id="tab-scroll-left" onclick="navigateTab(-1)" class="w-5 h-7 rounded hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center text-xs font-bold transition-colors shrink-0" title="Previous Window / Tab">
+            ‹
+          </button>
+
+          <!-- Dynamic Tabs Strip (Scrollable) -->
+          <div id="tab-strip" class="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth flex-1">
+            <div id="dynamic-tabs-container" class="flex items-center gap-1"></div>
+          </div>
+
+          <!-- Tab Scroll Right Arrow Button -->
+          <button id="tab-scroll-right" onclick="navigateTab(1)" class="w-5 h-7 rounded hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center text-xs font-bold transition-colors shrink-0" title="Next Window / Tab">
+            ›
+          </button>
+        </div>
+
+        <!-- Right Action: Open New Diagram Tab Button -->
+        <div class="flex items-center gap-1 pb-1 shrink-0">
+          <button onclick="openNewProjectModal()" class="w-6 h-6 rounded hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center text-xs font-bold transition-colors" title="Create New Diagram (.pcd)">
+            +
+          </button>
+        </div>
+      </div>
+
+      <!-- ====================================================== -->
+      <!-- VIEWPORT 1: ROOT WORKSPACE VIEWS (When Pinned Tab Active) -->
+      <!-- ====================================================== -->
+      <div id="workspace-root-view" class="flex-1 overflow-y-auto p-6">
+
+        <!-- ====================================================== -->
+        <!-- SUBVIEW A: HOME OVERVIEW (Default Active Subview)       -->
+        <!-- ====================================================== -->
+        <div id="subview-home" class="subview active flex-col gap-6 w-full">
+          
+          <!-- Welcome Hero Banner -->
+          <div class="relative bg-gradient-to-r from-blue-50 via-sky-50 to-emerald-50/60 border border-blue-200 rounded-2xl p-6 shadow-sm overflow-hidden">
+            <div class="relative z-10 max-w-xl">
+              <span class="text-[11px] bg-blue-100 text-blue-700 border border-blue-300 px-2.5 py-0.5 rounded-full font-bold">Protection & Control Suite</span>
+              <h1 class="text-2xl font-extrabold text-slate-900 mt-2">Protection & Control Designer</h1>
+              <p class="text-xs text-slate-600 mt-1.5 leading-relaxed">Design single lines, configure ANSI relays (50/51, 87, 21), calculate short circuits, and verify protection selectivity curves in a unified environment.</p>
+              
+              <div class="flex items-center gap-3 mt-5">
+                <button onclick="openNewProjectModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg text-xs transition-all shadow-sm shadow-blue-300">
+                  Create New Diagram
+                </button>
+                <button onclick="switchSubview('templates')" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold px-4 py-2 rounded-lg text-xs transition-colors border border-amber-300 shadow-2xs">
+                  Browse Templates
+                </button>
+              </div>
+            </div>
+            <div class="absolute right-6 top-1/2 -translate-y-1/2 opacity-15 text-blue-600 pointer-events-none">
+              <svg class="w-48 h-48" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- FILES SAVED / RECENT PROJECTS SECTION -->
+          <section class="space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <h2 class="text-sm font-bold text-slate-900">Files Saved & Recent Projects</h2>
+                <span class="text-xs bg-slate-100 text-slate-700 font-semibold px-2 py-0.5 rounded-full border border-slate-200">4 Active</span>
+              </div>
+
+              <button onclick="switchSubview('recent')" class="text-xs text-blue-600 hover:text-blue-800 font-semibold hover:underline">
+                View All Recent Projects →
+              </button>
+            </div>
+
+            <!-- Projects Cards Grid (.pcd format with Multi-Nature Tooltips) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              
+              <!-- Project Card 1 (SLD last mod + 2 natures) -->
+              <div class="bg-white border border-slate-200 hover:border-blue-500 rounded-xl p-4 flex flex-col justify-between transition-all group hover:shadow-md cursor-pointer">
+                <div onclick="openProjectTab('pcd-1', 'Substation_San_Martin_115kV.pcd', '⚡', '115 kV Substation', 'DRC: OK')">
+                  <div class="h-24 w-full bg-slate-50 rounded-lg border border-slate-200 mb-3 flex items-center justify-center p-2 relative overflow-hidden bg-grid-pattern">
+                    <svg class="w-full h-full text-blue-600" viewBox="0 0 100 50">
+                      <line x1="10" y1="25" x2="90" y2="25" stroke="#2563eb" stroke-width="2.5"/>
+                      <rect x="25" y="15" width="16" height="20" fill="#ffffff" stroke="#d97706" stroke-width="1.8" rx="2"/>
+                      <circle cx="70" cy="25" r="8" fill="none" stroke="#16a34a" stroke-width="2"/>
+                      <circle cx="78" cy="25" r="8" fill="none" stroke="#16a34a" stroke-width="2"/>
+                    </svg>
+                    <span class="absolute top-1.5 right-1.5 text-[9px] bg-emerald-100 text-emerald-800 border border-emerald-300 px-1.5 py-0.5 rounded font-mono font-bold">DRC: OK</span>
+                  </div>
+
+                  <!-- Title & Nature Tooltip Badge -->
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-amber-500 font-bold" title="Last modified: Single Line Diagram">⚡</span>
+                    <h3 class="text-xs font-bold text-slate-900 group-hover:text-blue-600 transition-colors truncate">Substation_San_Martin_115kV.pcd</h3>
+                    
+                    <!-- Tooltip Container (+2 Natures) -->
+                    <div class="relative group/nature inline-block shrink-0" onclick="event.stopPropagation()">
+                      <span class="cursor-help inline-flex items-center justify-center px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-300 transition-colors">+2</span>
+                      <div class="absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 hidden group-hover/nature:flex flex-col w-52 p-2.5 bg-slate-900 text-white text-[11px] rounded-lg shadow-xl z-40 pointer-events-none">
+                        <div class="font-bold text-slate-300 text-[10px] uppercase border-b border-slate-700 pb-1 mb-1.5 flex items-center justify-between">
+                          <span>Associated Toolkits (3)</span>
+                          <span class="text-[9px] text-cyan-400">P&C Suite</span>
+                        </div>
+                        <div class="space-y-1">
+                          <div class="flex items-center gap-1.5 text-amber-300 font-semibold"><span>⚡</span><span>Single Line Diagram (Last Mod)</span></div>
+                          <div class="flex items-center gap-1.5 text-emerald-300"><span>⚙️</span><span>Short Circuit (IEC/IEEE)</span></div>
+                          <div class="flex items-center gap-1.5 text-cyan-300"><span>📊</span><span>Load Flow Calculator</span></div>
+                        </div>
+                        <div class="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-slate-900"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p class="text-[11px] text-slate-500 mt-0.5">Dual-bus breaker-and-a-half scheme</p>
+                </div>
+
+                <div class="mt-4 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-500 font-medium">
+                  <span>Saved 12 min ago</span>
+                  <button onclick="openProjectTab('pcd-1', 'Substation_San_Martin_115kV.pcd', '⚡', '115 kV Substation', 'DRC: OK')" class="text-blue-600 font-semibold hover:underline">Open Project →</button>
+                </div>
+              </div>
+
+              <!-- Project Card 2 (Relay Coordination last mod + 1 nature) -->
+              <div class="bg-white border border-slate-200 hover:border-blue-500 rounded-xl p-4 flex flex-col justify-between transition-all group hover:shadow-md cursor-pointer">
+                <div onclick="openProjectTab('pcd-2', 'Feeder_Industrial_Park_13.8kV.pcd', '🛡️', '13.8 kV Feeder', 'ANSI 51 Coordinated')">
+                  <div class="h-24 w-full bg-slate-50 rounded-lg border border-slate-200 mb-3 flex items-center justify-center p-2 relative overflow-hidden bg-grid-pattern">
+                    <svg class="w-full h-full text-blue-600" viewBox="0 0 100 50">
+                      <line x1="20" y1="10" x2="20" y2="40" stroke="#2563eb" stroke-width="3"/>
+                      <line x1="20" y1="25" x2="80" y2="25" stroke="#2563eb" stroke-width="2.5"/>
+                      <rect x="45" y="18" width="18" height="14" fill="#ffffff" stroke="#059669" stroke-width="2" rx="1"/>
+                    </svg>
+                    <span class="absolute top-1.5 right-1.5 text-[9px] bg-blue-100 text-blue-800 border border-blue-300 px-1.5 py-0.5 rounded font-mono font-bold">ANSI 51 Coordinated</span>
+                  </div>
+
+                  <!-- Title & Nature Tooltip Badge -->
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-blue-600 font-bold" title="Last modified: Relay Coordination">🛡️</span>
+                    <h3 class="text-xs font-bold text-slate-900 group-hover:text-blue-600 transition-colors truncate">Feeder_Industrial_Park_13.8kV.pcd</h3>
+                    
+                    <div class="relative group/nature inline-block shrink-0" onclick="event.stopPropagation()">
+                      <span class="cursor-help inline-flex items-center justify-center px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-300 transition-colors">+1</span>
+                      <div class="absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 hidden group-hover/nature:flex flex-col w-52 p-2.5 bg-slate-900 text-white text-[11px] rounded-lg shadow-xl z-40 pointer-events-none">
+                        <div class="font-bold text-slate-300 text-[10px] uppercase border-b border-slate-700 pb-1 mb-1.5 flex items-center justify-between">
+                          <span>Associated Toolkits (2)</span>
+                          <span class="text-[9px] text-cyan-400">P&C Suite</span>
+                        </div>
+                        <div class="space-y-1">
+                          <div class="flex items-center gap-1.5 text-blue-300 font-semibold"><span>🛡️</span><span>Relay Coordination (Last Mod)</span></div>
+                          <div class="flex items-center gap-1.5 text-amber-300"><span>⚡</span><span>Single Line Diagram</span></div>
+                        </div>
+                        <div class="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-slate-900"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p class="text-[11px] text-slate-500 mt-0.5">Recloser & fuse-saving sequence</p>
+                </div>
+
+                <div class="mt-4 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-500 font-medium">
+                  <span>Saved 2 hours ago</span>
+                  <button onclick="openProjectTab('pcd-2', 'Feeder_Industrial_Park_13.8kV.pcd', '🛡️', '13.8 kV Feeder', 'ANSI 51 Coordinated')" class="text-blue-600 font-semibold hover:underline">Open Project →</button>
+                </div>
+              </div>
+
+              <!-- Project Card 3 (Diff 87T last mod + 3 natures) -->
+              <div class="bg-white border border-slate-200 hover:border-blue-500 rounded-xl p-4 flex flex-col justify-between transition-all group hover:shadow-md cursor-pointer">
+                <div onclick="openProjectTab('pcd-3', 'Transformer_T1_40MVA_Protection.pcd', '🔄', '230/13.8 kV Unit', '87T Slope Validated')">
+                  <div class="h-24 w-full bg-slate-50 rounded-lg border border-slate-200 mb-3 flex items-center justify-center p-2 relative overflow-hidden bg-grid-pattern">
+                    <svg class="w-full h-full text-amber-500" viewBox="0 0 100 50">
+                      <circle cx="35" cy="25" r="14" fill="none" stroke="#d97706" stroke-width="2.5"/>
+                      <circle cx="65" cy="25" r="14" fill="none" stroke="#d97706" stroke-width="2.5"/>
+                      <line x1="10" y1="25" x2="21" y2="25" stroke="#2563eb" stroke-width="2.5"/>
+                      <line x1="79" y1="25" x2="90" y2="25" stroke="#2563eb" stroke-width="2.5"/>
+                    </svg>
+                    <span class="absolute top-1.5 right-1.5 text-[9px] bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.5 rounded font-mono font-bold">87T Differential</span>
+                  </div>
+
+                  <!-- Title & Nature Tooltip Badge -->
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-amber-500 font-bold" title="Last modified: Protection Differential 87T">🔄</span>
+                    <h3 class="text-xs font-bold text-slate-900 group-hover:text-blue-600 transition-colors truncate">Transformer_T1_40MVA_Protection.pcd</h3>
+                    
+                    <div class="relative group/nature inline-block shrink-0" onclick="event.stopPropagation()">
+                      <span class="cursor-help inline-flex items-center justify-center px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-300 transition-colors">+3</span>
+                      <div class="absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 hidden group-hover/nature:flex flex-col w-56 p-2.5 bg-slate-900 text-white text-[11px] rounded-lg shadow-xl z-40 pointer-events-none">
+                        <div class="font-bold text-slate-300 text-[10px] uppercase border-b border-slate-700 pb-1 mb-1.5 flex items-center justify-between">
+                          <span>Associated Toolkits (4)</span>
+                          <span class="text-[9px] text-cyan-400">P&C Suite</span>
+                        </div>
+                        <div class="space-y-1">
+                          <div class="flex items-center gap-1.5 text-amber-300 font-semibold"><span>🔄</span><span>Protection Differential (Last Mod)</span></div>
+                          <div class="flex items-center gap-1.5 text-blue-300"><span>🛡️</span><span>Relay Coordination (ANSI 50/51)</span></div>
+                          <div class="flex items-center gap-1.5 text-amber-300"><span>⚡</span><span>Single Line Diagram</span></div>
+                          <div class="flex items-center gap-1.5 text-emerald-300"><span>⚙️</span><span>Short Circuit Engine</span></div>
+                        </div>
+                        <div class="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-slate-900"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p class="text-[11px] text-slate-500 mt-0.5">Percent differential & overfluxing</p>
+                </div>
+
+                <div class="mt-4 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-500 font-medium">
+                  <span>Saved Yesterday</span>
+                  <button onclick="openProjectTab('pcd-3', 'Transformer_T1_40MVA_Protection.pcd', '🔄', '230/13.8 kV Unit', '87T Slope Validated')" class="text-blue-600 font-semibold hover:underline">Open Project →</button>
+                </div>
+              </div>
+
+              <!-- Project Card 4: Quick Action -->
+              <div onclick="openNewProjectModal()" class="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl p-4 flex flex-col items-center justify-center text-center bg-slate-50/80 hover:bg-blue-50/40 transition-all cursor-pointer">
+                <div class="w-10 h-10 rounded-full bg-white border border-slate-200 shadow-2xs flex items-center justify-center text-slate-600 group-hover:text-blue-600 mb-2">
+                  <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                  </svg>
+                </div>
+                <div class="text-xs font-bold text-slate-800">Open or Import File</div>
+                <p class="text-[10px] text-slate-500 mt-0.5">Supports .pcd single line files</p>
+              </div>
+
+            </div>
+          </section>
+
+          <!-- STARTER TEMPLATES SECTION -->
+          <section class="space-y-3">
+            <div class="flex items-center justify-between">
+              <h2 class="text-sm font-bold text-slate-900">Engineering Templates</h2>
+              <button onclick="switchSubview('templates')" class="text-xs text-blue-600 hover:text-blue-800 font-semibold hover:underline">
+                View All Templates Catalog →
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div onclick="switchSubview('templates')" class="bg-white border border-slate-200 rounded-xl p-3.5 hover:border-blue-400 hover:shadow-sm transition-all flex items-center gap-3 cursor-pointer group">
+                <div class="w-10 h-10 rounded-lg bg-blue-100 border border-blue-200 flex items-center justify-center text-blue-700 font-bold text-xs shadow-2xs">
+                  IEEE
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-slate-900 group-hover:text-blue-600 transition-colors">IEEE 9-Bus Standard Feeder</h4>
+                  <p class="text-[10px] text-slate-500">Pre-built 3-generator power flow grid</p>
+                </div>
+              </div>
+
+              <div onclick="switchSubview('templates')" class="bg-white border border-slate-200 rounded-xl p-3.5 hover:border-emerald-400 hover:shadow-sm transition-all flex items-center gap-3 cursor-pointer group">
+                <div class="w-10 h-10 rounded-lg bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-700 font-bold text-xs shadow-2xs">
+                  P&C
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">Radial Overcurrent Scheme</h4>
+                  <p class="text-[10px] text-slate-500">Coordination curves with SEL & ABB relays</p>
+                </div>
+              </div>
+
+              <div onclick="switchSubview('templates')" class="bg-white border border-slate-200 rounded-xl p-3.5 hover:border-amber-400 hover:shadow-sm transition-all flex items-center gap-3 cursor-pointer group">
+                <div class="w-10 h-10 rounded-lg bg-amber-100 border border-amber-300 flex items-center justify-center text-amber-800 font-bold text-xs shadow-2xs">
+                  GEN
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-slate-900 group-hover:text-amber-700 transition-colors">Generator Protection Package</h4>
+                  <p class="text-[10px] text-slate-500">ANSI 27, 59, 81O/U, 40 loss of field</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+        </div>
+
+        <!-- ====================================================== -->
+        <!-- SUBVIEW B: RECENT PROJECTS (Table with Tooltips)       -->
+        <!-- ====================================================== -->
+        <div id="subview-recent" class="subview flex-col gap-5 w-full">
+          <!-- Subview Header -->
+          <div class="flex items-center justify-between pb-4 border-b border-slate-200">
+            <div>
+              <h1 class="text-xl font-bold text-slate-900">Recent Projects Manager</h1>
+              <p class="text-xs text-slate-500 mt-0.5">Manage, organize and launch saved single-line diagram (.pcd) project files</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="openNewProjectModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition-colors shadow-sm">
+                + New .pcd Project
+              </button>
+              <button class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3 py-1.5 rounded-lg text-xs border border-slate-300 transition-colors">
+                Open in Explorer
+              </button>
+            </div>
+          </div>
+
+          <!-- Filter Toolbar -->
+          <div class="flex items-center justify-between bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-xs">
+            <div class="flex items-center gap-2">
+              <span class="text-slate-500 font-bold text-[11px] uppercase tracking-wider">Filter:</span>
+              <button class="px-2.5 py-1 rounded bg-blue-600 text-white font-bold shadow-2xs">All Projects (4)</button>
+              <button class="px-2.5 py-1 rounded hover:bg-slate-200 text-slate-700 font-medium">Substations (115kV/230kV)</button>
+              <button class="px-2.5 py-1 rounded hover:bg-slate-200 text-slate-700 font-medium">Distribution (13.8kV)</button>
+              <button class="px-2.5 py-1 rounded hover:bg-slate-200 text-slate-700 font-medium">Starred</button>
+            </div>
+            <div class="text-[11px] text-slate-500">
+              Storage: <span class="font-mono font-medium text-slate-800">C:/Users/ICIS/Documents/Simulador/Projects</span>
+            </div>
+          </div>
+
+          <!-- Detailed Project Table / List -->
+          <div class="bg-white border border-slate-200 rounded-xl shadow-2xs overflow-visible">
+            <table class="w-full text-left text-xs text-slate-700">
+              <thead class="bg-slate-50 text-[11px] uppercase font-bold text-slate-600 border-b border-slate-200">
+                <tr>
+                  <th class="py-2.5 px-4">Project File Name & Toolkits</th>
+                  <th class="py-2.5 px-4">Voltage / Type</th>
+                  <th class="py-2.5 px-4">DRC / Coordination</th>
+                  <th class="py-2.5 px-4">Last Modified</th>
+                  <th class="py-2.5 px-4">File Size</th>
+                  <th class="py-2.5 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <!-- Item 1 (⚡ Last Mod + 2 Natures) -->
+                <tr class="hover:bg-blue-50/40 transition-colors group">
+                  <td class="py-3 px-4 font-bold text-slate-900 flex items-center gap-2">
+                    <span class="text-amber-500 text-base" title="Last modified: Single Line Diagram">⚡</span>
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <span class="group-hover:text-blue-600 transition-colors">Substation_San_Martin_115kV.pcd</span>
+                        <!-- Interactive Tooltip (+2) -->
+                        <div class="relative group/tblnature inline-block" onclick="event.stopPropagation()">
+                          <span class="cursor-help px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-300 transition-colors">+2</span>
+                          <div class="absolute left-0 bottom-full mb-1.5 hidden group-hover/tblnature:flex flex-col w-52 p-2.5 bg-slate-900 text-white text-[11px] rounded-lg shadow-xl z-50 pointer-events-none">
+                            <div class="font-bold text-slate-300 text-[10px] uppercase border-b border-slate-700 pb-1 mb-1.5">Associated Toolkits (3)</div>
+                            <div class="space-y-1">
+                              <div class="flex items-center gap-1.5 text-amber-300"><span>⚡</span><span>Single Line Diagram (Last Mod)</span></div>
+                              <div class="flex items-center gap-1.5 text-emerald-300"><span>⚙️</span><span>Short Circuit (IEC/IEEE)</span></div>
+                              <div class="flex items-center gap-1.5 text-cyan-300"><span>📊</span><span>Load Flow Calculator</span></div>
+                            </div>
+                            <div class="absolute top-full left-4 -mt-1 border-4 border-transparent border-t-slate-900"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="text-[10px] text-slate-400 font-normal">Dual-bus breaker-and-a-half scheme</div>
+                    </div>
+                  </td>
+                  <td class="py-3 px-4"><span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-mono font-bold text-[11px]">115 kV Substation</span></td>
+                  <td class="py-3 px-4"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[11px]">DRC: 0 Errors</span></td>
+                  <td class="py-3 px-4 text-slate-500 font-medium">Today, 16:08</td>
+                  <td class="py-3 px-4 text-slate-500 font-mono">1.4 MB</td>
+                  <td class="py-3 px-4 text-right">
+                    <button onclick="openProjectTab('pcd-1', 'Substation_San_Martin_115kV.pcd', '⚡', '115 kV Substation', 'DRC: OK')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1 rounded text-xs transition-colors shadow-2xs">Open</button>
+                  </td>
+                </tr>
+
+                <!-- Item 2 (🛡️ Last Mod + 1 Nature) -->
+                <tr class="hover:bg-blue-50/40 transition-colors group">
+                  <td class="py-3 px-4 font-bold text-slate-900 flex items-center gap-2">
+                    <span class="text-blue-600 text-base" title="Last modified: Relay Coordination">🛡️</span>
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <span class="group-hover:text-blue-600 transition-colors">Feeder_Industrial_Park_13.8kV.pcd</span>
+                        <!-- Interactive Tooltip (+1) -->
+                        <div class="relative group/tblnature inline-block" onclick="event.stopPropagation()">
+                          <span class="cursor-help px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-300 transition-colors">+1</span>
+                          <div class="absolute left-0 bottom-full mb-1.5 hidden group-hover/tblnature:flex flex-col w-52 p-2.5 bg-slate-900 text-white text-[11px] rounded-lg shadow-xl z-50 pointer-events-none">
+                            <div class="font-bold text-slate-300 text-[10px] uppercase border-b border-slate-700 pb-1 mb-1.5">Associated Toolkits (2)</div>
+                            <div class="space-y-1">
+                              <div class="flex items-center gap-1.5 text-blue-300"><span>🛡️</span><span>Relay Coordination (Last Mod)</span></div>
+                              <div class="flex items-center gap-1.5 text-amber-300"><span>⚡</span><span>Single Line Diagram</span></div>
+                            </div>
+                            <div class="absolute top-full left-4 -mt-1 border-4 border-transparent border-t-slate-900"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="text-[10px] text-slate-400 font-normal">Recloser & fuse-saving sequence</div>
+                    </div>
+                  </td>
+                  <td class="py-3 px-4"><span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-mono font-bold text-[11px]">13.8 kV Feeder</span></td>
+                  <td class="py-3 px-4"><span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-bold text-[11px]">ANSI 51 Coordinated</span></td>
+                  <td class="py-3 px-4 text-slate-500 font-medium">Today, 14:15</td>
+                  <td class="py-3 px-4 text-slate-500 font-mono">840 KB</td>
+                  <td class="py-3 px-4 text-right">
+                    <button onclick="openProjectTab('pcd-2', 'Feeder_Industrial_Park_13.8kV.pcd', '🛡️', '13.8 kV Feeder', 'ANSI 51 Coordinated')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1 rounded text-xs transition-colors shadow-2xs">Open</button>
+                  </td>
+                </tr>
+
+                <!-- Item 3 (🔄 Last Mod + 3 Natures) -->
+                <tr class="hover:bg-blue-50/40 transition-colors group">
+                  <td class="py-3 px-4 font-bold text-slate-900 flex items-center gap-2">
+                    <span class="text-amber-500 text-base" title="Last modified: Protection Differential 87T">🔄</span>
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <span class="group-hover:text-blue-600 transition-colors">Transformer_T1_40MVA_Protection.pcd</span>
+                        <!-- Interactive Tooltip (+3) -->
+                        <div class="relative group/tblnature inline-block" onclick="event.stopPropagation()">
+                          <span class="cursor-help px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-300 transition-colors">+3</span>
+                          <div class="absolute left-0 bottom-full mb-1.5 hidden group-hover/tblnature:flex flex-col w-56 p-2.5 bg-slate-900 text-white text-[11px] rounded-lg shadow-xl z-50 pointer-events-none">
+                            <div class="font-bold text-slate-300 text-[10px] uppercase border-b border-slate-700 pb-1 mb-1.5">Associated Toolkits (4)</div>
+                            <div class="space-y-1">
+                              <div class="flex items-center gap-1.5 text-amber-300"><span>🔄</span><span>Protection Differential (Last Mod)</span></div>
+                              <div class="flex items-center gap-1.5 text-blue-300"><span>🛡️</span><span>Relay Coordination (ANSI 50/51)</span></div>
+                              <div class="flex items-center gap-1.5 text-amber-300"><span>⚡</span><span>Single Line Diagram</span></div>
+                              <div class="flex items-center gap-1.5 text-emerald-300"><span>⚙️</span><span>Short Circuit Engine</span></div>
+                            </div>
+                            <div class="absolute top-full left-4 -mt-1 border-4 border-transparent border-t-slate-900"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="text-[10px] text-slate-400 font-normal">Percent differential & overfluxing</div>
+                    </div>
+                  </td>
+                  <td class="py-3 px-4"><span class="px-2 py-0.5 bg-amber-100 text-amber-900 rounded font-mono font-bold text-[11px]">230/13.8 kV Unit</span></td>
+                  <td class="py-3 px-4"><span class="px-2 py-0.5 bg-amber-100 text-amber-900 rounded font-bold text-[11px]">87T Slope Validated</span></td>
+                  <td class="py-3 px-4 text-slate-500 font-medium">Yesterday, 18:30</td>
+                  <td class="py-3 px-4 text-slate-500 font-mono">2.1 MB</td>
+                  <td class="py-3 px-4 text-right">
+                    <button onclick="openProjectTab('pcd-3', 'Transformer_T1_40MVA_Protection.pcd', '🔄', '230/13.8 kV Unit', '87T Slope Validated')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1 rounded text-xs transition-colors shadow-2xs">Open</button>
+                  </td>
+                </tr>
+
+                <!-- Item 4 (⚙️ Last Mod + 2 Natures) -->
+                <tr class="hover:bg-blue-50/40 transition-colors group">
+                  <td class="py-3 px-4 font-bold text-slate-900 flex items-center gap-2">
+                    <span class="text-emerald-600 text-base" title="Last modified: Short Circuit Engine">⚙️</span>
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <span class="group-hover:text-blue-600 transition-colors">Substation_Norte_230kV_Line1.pcd</span>
+                        <!-- Interactive Tooltip (+2) -->
+                        <div class="relative group/tblnature inline-block" onclick="event.stopPropagation()">
+                          <span class="cursor-help px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-300 transition-colors">+2</span>
+                          <div class="absolute left-0 bottom-full mb-1.5 hidden group-hover/tblnature:flex flex-col w-52 p-2.5 bg-slate-900 text-white text-[11px] rounded-lg shadow-xl z-50 pointer-events-none">
+                            <div class="font-bold text-slate-300 text-[10px] uppercase border-b border-slate-700 pb-1 mb-1.5">Associated Toolkits (3)</div>
+                            <div class="space-y-1">
+                              <div class="flex items-center gap-1.5 text-emerald-300"><span>⚙️</span><span>Short Circuit Engine (Last Mod)</span></div>
+                              <div class="flex items-center gap-1.5 text-amber-300"><span>⚡</span><span>Single Line Diagram</span></div>
+                              <div class="flex items-center gap-1.5 text-blue-300"><span>🛡️</span><span>Distance 21 Coordination</span></div>
+                            </div>
+                            <div class="absolute top-full left-4 -mt-1 border-4 border-transparent border-t-slate-900"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="text-[10px] text-slate-400 font-normal">Distance 21 zone quadrilateral reach</div>
+                    </div>
+                  </td>
+                  <td class="py-3 px-4"><span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-mono font-bold text-[11px]">230 kV Transmission</span></td>
+                  <td class="py-3 px-4"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[11px]">DRC: 0 Errors</span></td>
+                  <td class="py-3 px-4 text-slate-500 font-medium">Nov 04, 2026</td>
+                  <td class="py-3 px-4 text-slate-500 font-mono">3.4 MB</td>
+                  <td class="py-3 px-4 text-right">
+                    <button onclick="openProjectTab('pcd-4', 'Substation_Norte_230kV_Line1.pcd', '⚙️', '230 kV Transmission', 'DRC: 0 Errors')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1 rounded text-xs transition-colors shadow-2xs">Open</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ====================================================== -->
+        <!-- SUBVIEW C: TEMPLATE LIBRARY                            -->
+        <!-- ====================================================== -->
+        <div id="subview-templates" class="subview flex-col gap-5 w-full">
+          <!-- Subview Header -->
+          <div class="flex items-center justify-between pb-4 border-b border-slate-200">
+            <div>
+              <h1 class="text-xl font-bold text-slate-900">Engineering Template Library</h1>
+              <p class="text-xs text-slate-500 mt-0.5">Start projects instantly with pre-configured IEEE benchmarks, standard substations, and relay coordination models</p>
+            </div>
+            <button onclick="switchSubview('home')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3 py-1.5 rounded-lg text-xs border border-slate-300 transition-colors">
+              ← Back to Home
+            </button>
+          </div>
+
+          <!-- Category Grid of Templates -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            
+            <!-- Template Card 1: IEEE 9-Bus -->
+            <div class="bg-white border border-slate-200 hover:border-blue-500 rounded-2xl p-4 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between group">
+              <div>
+                <div class="h-32 w-full bg-slate-50 border border-slate-200 rounded-xl mb-3 flex items-center justify-center p-3 relative overflow-hidden bg-grid-pattern">
+                  <svg class="w-full h-full text-blue-600" viewBox="0 0 120 60">
+                    <circle cx="20" cy="30" r="10" fill="none" stroke="#2563eb" stroke-width="2.5"/>
+                    <line x1="30" y1="30" x2="50" y2="30" stroke="#64748b" stroke-width="2.5"/>
+                    <line x1="50" y1="15" x2="50" y2="45" stroke="#2563eb" stroke-width="3.5"/>
+                    <line x1="50" y1="20" x2="80" y2="20" stroke="#64748b" stroke-width="2.5"/>
+                    <circle cx="100" cy="20" r="10" fill="none" stroke="#16a34a" stroke-width="2.5"/>
+                  </svg>
+                  <span class="absolute top-2 left-2 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-2xs">IEEE Benchmark</span>
+                </div>
+                <h3 class="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors">IEEE 9-Bus Standard Test Feeder</h3>
+                <p class="text-xs text-slate-500 mt-1 leading-relaxed">Classical Anderson & Fouad 3-machine 9-bus power flow and transient stability benchmark.</p>
+                
+                <div class="mt-3 flex flex-wrap gap-1.5 text-[10px]">
+                  <span class="bg-blue-50 text-blue-800 border border-blue-200 px-2 py-0.5 rounded font-mono font-medium">3 Generators</span>
+                  <span class="bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded font-mono font-medium">3 Transformers</span>
+                  <span class="bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded font-mono font-medium">Newton-Raphson Ready</span>
+                </div>
+              </div>
+              
+              <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                <span class="text-[11px] text-slate-400 font-mono">File: ieee9bus.pcd</span>
+                <button onclick="openProjectTab('tpl-1', 'IEEE_9Bus_Feeder.pcd', '⚡', 'IEEE Benchmark Grid', 'Newton-Raphson Ready')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition-colors shadow-2xs">
+                  Use Template
+                </button>
+              </div>
+            </div>
+
+            <!-- Template Card 2: Breaker-and-a-half -->
+            <div class="bg-white border border-slate-200 hover:border-blue-500 rounded-2xl p-4 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between group">
+              <div>
+                <div class="h-32 w-full bg-slate-50 border border-slate-200 rounded-xl mb-3 flex items-center justify-center p-3 relative overflow-hidden bg-grid-pattern">
+                  <svg class="w-full h-full text-blue-600" viewBox="0 0 120 60">
+                    <line x1="10" y1="15" x2="110" y2="15" stroke="#2563eb" stroke-width="3"/>
+                    <line x1="10" y1="45" x2="110" y2="45" stroke="#2563eb" stroke-width="3"/>
+                    <line x1="35" y1="15" x2="35" y2="45" stroke="#16a34a" stroke-width="2.5"/>
+                    <line x1="75" y1="15" x2="75" y2="45" stroke="#d97706" stroke-width="2.5"/>
+                  </svg>
+                  <span class="absolute top-2 left-2 bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-2xs">Substation 230kV</span>
+                </div>
+                <h3 class="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors">Breaker-and-a-Half Substation Scheme</h3>
+                <p class="text-xs text-slate-500 mt-1 leading-relaxed">High reliability transmission bay topology with dual main buses and 3 breakers per two feeder circuits.</p>
+                
+                <div class="mt-3 flex flex-wrap gap-1.5 text-[10px]">
+                  <span class="bg-blue-50 text-blue-800 border border-blue-200 px-2 py-0.5 rounded font-mono font-medium">Bus A / Bus B</span>
+                  <span class="bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded font-mono font-medium">ANSI 50BF</span>
+                  <span class="bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded font-mono font-medium">ANSI 87B Diff</span>
+                </div>
+              </div>
+              
+              <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                <span class="text-[11px] text-slate-400 font-mono">File: bay_breaker_half.pcd</span>
+                <button onclick="openProjectTab('tpl-2', 'Breaker_and_Half_Substation.pcd', '⚡', '230 kV Substation', 'DRC: Validated')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition-colors shadow-2xs">
+                  Use Template
+                </button>
+              </div>
+            </div>
+
+            <!-- Template Card 3: Radial Feeder -->
+            <div class="bg-white border border-slate-200 hover:border-blue-500 rounded-2xl p-4 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between group">
+              <div>
+                <div class="h-32 w-full bg-slate-50 border border-slate-200 rounded-xl mb-3 flex items-center justify-center p-3 relative overflow-hidden bg-grid-pattern">
+                  <svg class="w-full h-full text-emerald-600" viewBox="0 0 120 60">
+                    <line x1="15" y1="30" x2="105" y2="30" stroke="#16a34a" stroke-width="2.5"/>
+                    <rect x="35" y="22" width="14" height="16" fill="#ffffff" stroke="#16a34a" stroke-width="2" rx="2"/>
+                    <rect x="75" y="22" width="14" height="16" fill="#ffffff" stroke="#d97706" stroke-width="2" rx="2"/>
+                  </svg>
+                  <span class="absolute top-2 left-2 bg-amber-500 text-slate-950 text-[10px] font-bold px-2 py-0.5 rounded shadow-2xs">Distribution 13.8kV</span>
+                </div>
+                <h3 class="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors">Radial Feeder with Recloser & Fuses</h3>
+                <p class="text-xs text-slate-500 mt-1 leading-relaxed">Distribution topology configured for fuse-saving philosophy with fast/delayed trip coordination.</p>
+                
+                <div class="mt-3 flex flex-wrap gap-1.5 text-[10px]">
+                  <span class="bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded font-mono font-medium">Fast / Delayed Curves</span>
+                  <span class="bg-blue-50 text-blue-800 border border-blue-200 px-2 py-0.5 rounded font-mono font-medium">TCC Selectivity</span>
+                </div>
+              </div>
+              
+              <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                <span class="text-[11px] text-slate-400 font-mono">File: radial_recloser.pcd</span>
+                <button onclick="openProjectTab('tpl-3', 'Radial_Feeder_Protection.pcd', '🛡️', '13.8 kV Feeder', 'TCC Verified')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition-colors shadow-2xs">
+                  Use Template
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ====================================================== -->
+      <!-- VIEWPORT 2: DYNAMIC PROJECT EDITOR VIEW (When Dynamic Tab Active) -->
+      <!-- ====================================================== -->
+      <div id="dynamic-project-container" class="hidden flex-1 flex-col h-full bg-slate-50 overflow-hidden">
+        
+        <!-- Canvas Command Bar -->
+        <div class="bg-white border-b border-slate-200 px-4 py-2 flex items-center justify-between shrink-0">
+          <div class="flex items-center gap-3">
+            <span id="canvas-project-icon" class="text-amber-500 font-bold text-base">⚡</span>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 id="canvas-project-title" class="text-xs font-bold text-slate-900">Substation_San_Martin_115kV.pcd</h2>
+                <span id="canvas-project-voltage" class="px-2 py-0.2 bg-blue-100 text-blue-800 rounded font-mono text-[10px] font-bold">115 kV Substation</span>
+                <span id="canvas-project-drc" class="px-2 py-0.2 bg-emerald-100 text-emerald-800 rounded text-[10px] font-bold">DRC: OK</span>
+              </div>
+              <p class="text-[10px] text-slate-400">Single Line Diagram CAD Canvas • Live Simulation Mode</p>
+            </div>
+          </div>
+
+          <!-- Canvas Interactive Controls: Zoom, Fit In, Sheet Format & Run Study -->
+          <div class="flex items-center gap-3">
+            
+            <!-- Zoom Controls & Fit In -->
+            <div class="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs">
+              <button onclick="zoomFitIn()" class="p-1.5 rounded hover:bg-white text-slate-700 hover:text-blue-700 font-medium transition-all flex items-center justify-center" title="Fit In (100% Zoom & Recenter)">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+                </svg>
+              </button>
+              <button onclick="zoomOut()" class="w-6 h-6 rounded hover:bg-white text-slate-700 font-bold transition-all flex items-center justify-center select-none" title="Zoom Out (Mouse Wheel Down)">
+                −
+              </button>
+              <span id="canvas-zoom-label" class="font-mono font-bold text-[11px] text-slate-700 px-1.5 min-w-[42px] text-center select-none">100%</span>
+              <button onclick="zoomIn()" class="w-6 h-6 rounded hover:bg-white text-slate-700 font-bold transition-all flex items-center justify-center select-none" title="Zoom In (Mouse Wheel Up)">
+                +
+              </button>
+            </div>
+
+            <!-- Engineering Sheet Format Dropdown List -->
+            <div class="flex items-center gap-1.5">
+              <label for="canvas-sheet-format-select" class="text-[11px] font-semibold text-slate-500">Sheet:</label>
+              <select id="canvas-sheet-format-select" onchange="changeSheetFormat(this.value)" class="bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-slate-800 font-medium focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600">
+                <option value="ANSI_B">ANSI B (11" × 17" Tabloid)</option>
+                <option value="ANSI_A">ANSI A (8.5" × 11" Letter)</option>
+                <option value="ANSI_C">ANSI C (17" × 22")</option>
+                <option value="ANSI_D">ANSI D (22" × 34")</option>
+                <option value="ISO_A4">ISO A4 (210 × 297 mm)</option>
+                <option value="ISO_A3">ISO A3 (297 × 420 mm)</option>
+                <option value="ISO_A2">ISO A2 (420 × 594 mm)</option>
+                <option value="ISO_A1">ISO A1 (594 × 841 mm)</option>
+              </select>
+            </div>
+
+            <!-- Blocked / Disabled Run Study Button (Opacity + Grayscale) -->
+            <button disabled class="bg-slate-200 text-slate-500 font-bold px-3 py-1.5 rounded-lg text-xs shadow-none flex items-center gap-1.5 cursor-not-allowed opacity-40 grayscale" title="Run Study (Blocked / Background Mode Required)">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span>Run Study</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- CAD Graphic Diagram Canvas (Direct Canvas Viewport with Pan & Mouse Wheel Zoom) -->
+        <div id="cad-canvas-viewport" ondragover="handleCanvasDragOver(event)" ondragleave="handleCanvasDragLeave(event)" ondrop="handleCanvasDrop(event)" class="flex-1 overflow-auto relative bg-slate-100 bg-grid-pattern flex items-center justify-center p-8 select-none">
+          
+          <!-- Zoomable Sheet Workspace Transform Wrapper -->
+          <div id="cad-sheet-zoom-wrapper" class="transition-transform duration-75 origin-center my-auto">
+            
+            <!-- Technical Engineering Sheet Container with Blue Border (Empty & Transparent, directly reflecting the canvas grid) -->
+            <div id="engineering-sheet-boundary" onclick="if(event.target === this) { selectedPlacedInstanceId = null; renderPlacedCanvasElements(); }" class="bg-transparent border-2 border-blue-600 rounded-sm relative transition-all duration-200" style="width: 820px; height: 530px;">
+              <!-- Container for Placed Interactive CAD Elements -->
+              <div id="placed-cad-elements-container" onclick="if(event.target === this) { selectedPlacedInstanceId = null; renderPlacedCanvasElements(); }" class="w-full h-full relative overflow-hidden"></div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- 3. BOTTOM APPLICATION STATUS BAR (Light Contrast)        -->
+  <!-- ======================================================== -->
+  <footer class="h-6 bg-slate-100 border-t border-slate-200 px-3 flex items-center justify-between text-[11px] text-slate-600 shrink-0 font-medium">
+    <div class="flex items-center gap-4">
+      <span class="flex items-center gap-1.5 text-emerald-700 font-bold">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        Ready
+      </span>
+      <span>Workspace: <b class="text-slate-800 font-semibold">ICIS / Protection & Control</b></span>
+      <span id="footer-active-project">Active Project: <b class="text-slate-800 font-semibold">Substation_San_Martin_115kV.pcd</b></span>
+    </div>
+
+    <div class="flex items-center gap-4">
+      <span>Auto-save: <span class="text-blue-600 font-bold">ON</span></span>
+    </div>
+  </footer>
+
+  <!-- ======================================================== -->
+  <!-- 4. NEW PROJECT MODAL POP-UP DIALOG                       -->
+  <!-- ======================================================== -->
+  <div id="new-project-modal" onclick="if(event.target === this) closeNewProjectModal()" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden antialiased">
+    
+    <!-- Modal Window Container -->
+    <div class="bg-white border border-slate-300 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-emerald-500 flex items-center justify-center shadow-sm">
+            <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-slate-900 tracking-wide">Create New Diagram Project</h2>
+            <p class="text-[11px] text-slate-500 font-medium">Initialize a new Single Line Diagram (.pcd) with electrical base parameters</p>
+          </div>
+        </div>
+
+        <!-- Close Button -->
+        <button onclick="closeNewProjectModal()" type="button" class="w-7 h-7 rounded-lg hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors text-sm font-bold" title="Close Modal">
+          ✕
+        </button>
+      </div>
+
+      <!-- Modal Body / Form Fields (Scrollable) -->
+      <form id="new-project-form" oninput="validateNewProjectForm()" onchange="validateNewProjectForm()" onsubmit="event.preventDefault(); handleNewProjectSubmit();" class="p-6 overflow-y-auto space-y-5 text-xs text-slate-700">
+        
+        <!-- Section 1: File & Directory -->
+        <div class="space-y-3">
+          <span class="text-[11px] font-bold text-blue-700 uppercase tracking-wider">1. Project & File Location</span>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-slate-800 font-semibold mb-1">Project Name <span class="text-rose-600">*</span></label>
+              <div class="relative">
+                <input id="modal-project-name" type="text" value="" placeholder="Enter project name..." class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 font-mono font-medium">
+                <span class="absolute right-3 top-2 text-blue-600 font-mono text-[11px] font-bold">.pcd</span>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-slate-800 font-semibold mb-1">Save Directory</label>
+              <div class="flex gap-2">
+                <input type="text" readonly value="C:\Users\ICIS\Documents\Simulador\Projects" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-600 font-mono truncate">
+                <button type="button" class="bg-white hover:bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg border border-slate-300 font-semibold transition-colors shrink-0 shadow-2xs">
+                  Browse...
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Electrical Engineering Standards & Base Units -->
+        <div class="space-y-3 pt-3 border-t border-slate-200">
+          <span class="text-[11px] font-bold text-blue-700 uppercase tracking-wider">2. Electrical System Base Parameters</span>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            
+            <!-- Standard -->
+            <div>
+              <label class="block text-slate-800 font-semibold mb-1">Protection Standard</label>
+              <select id="modal-standard" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-2 text-xs text-slate-900 font-medium focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600">
+                <option value="IEEE">IEEE / ANSI (C37.2)</option>
+                <option value="IEC">IEC (60909 / 60255)</option>
+              </select>
+            </div>
+
+            <!-- Frequency -->
+            <div>
+              <label class="block text-slate-800 font-semibold mb-1">Nominal Frequency</label>
+              <div class="grid grid-cols-2 gap-1 bg-slate-100 p-1 border border-slate-200 rounded-lg">
+                <label class="flex items-center justify-center gap-1.5 py-1 rounded bg-blue-600 text-white font-bold cursor-pointer shadow-2xs">
+                  <input type="radio" name="modal_freq" value="60" checked class="hidden">
+                  <span>60 Hz</span>
+                </label>
+                <label class="flex items-center justify-center gap-1.5 py-1 rounded hover:bg-slate-200 text-slate-700 font-medium cursor-pointer">
+                  <input type="radio" name="modal_freq" value="50" class="hidden">
+                  <span>50 Hz</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Base MVA -->
+            <div>
+              <label class="block text-slate-800 font-semibold mb-1">System Base Power</label>
+              <div class="relative">
+                <input id="modal-base-power" type="number" value="100" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 font-mono font-bold focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600">
+                <span class="absolute right-3 top-2 text-slate-500 font-semibold text-[11px]">MVA</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Section 3: Initial Topology & Starter Template -->
+        <div class="space-y-3 pt-3 border-t border-slate-200">
+          <span class="text-[11px] font-bold text-blue-700 uppercase tracking-wider">3. Starting Topology Template</span>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            
+            <!-- Option 1: Empty file -->
+            <label class="relative bg-blue-50/60 border-2 border-blue-600 rounded-xl p-3 flex flex-col justify-between cursor-pointer hover:bg-blue-50 transition-colors shadow-2xs">
+              <input type="radio" name="modal_template" value="blank" checked class="absolute top-3 right-3 text-blue-600">
+              <div>
+                <div class="text-blue-900 font-bold text-xs mb-1">Empty file</div>
+                <p class="text-[11px] text-slate-600 leading-relaxed">Start with a clean single-line workspace grid.</p>
+              </div>
+              <span class="mt-3 text-[10px] text-blue-700 font-mono font-semibold">0 Buses • Clean Grid</span>
+            </label>
+
+            <!-- Option 2: IEEE 9-Bus -->
+            <label class="relative bg-white border border-slate-200 hover:border-emerald-500 rounded-xl p-3 flex flex-col justify-between cursor-pointer hover:bg-emerald-50/30 transition-colors shadow-2xs">
+              <input type="radio" name="modal_template" value="ieee9" class="absolute top-3 right-3 text-emerald-600">
+              <div>
+                <div class="text-slate-900 font-bold text-xs mb-1">IEEE 9-Bus Benchmark</div>
+                <p class="text-[11px] text-slate-500 leading-relaxed">3-generator transmission network ready for load flow.</p>
+              </div>
+              <span class="mt-3 text-[10px] text-emerald-700 font-mono font-semibold">9 Buses • 3 Generators</span>
+            </label>
+
+            <!-- Option 3: Radial Feeder -->
+            <label class="relative bg-white border border-slate-200 hover:border-amber-500 rounded-xl p-3 flex flex-col justify-between cursor-pointer hover:bg-amber-50/30 transition-colors shadow-2xs">
+              <input type="radio" name="modal_template" value="radial" class="absolute top-3 right-3 text-amber-500">
+              <div>
+                <div class="text-slate-900 font-bold text-xs mb-1">Radial Feeder 13.8kV</div>
+                <p class="text-[11px] text-slate-500 leading-relaxed">Distribution line with recloser and fuse curve settings.</p>
+              </div>
+              <span class="mt-3 text-[10px] text-amber-800 font-mono font-semibold">ANSI 50/51 Pre-set</span>
+            </label>
+
+          </div>
+        </div>
+
+        <!-- Section 4: Engineering Notes / Metadata -->
+        <div class="space-y-3 pt-3 border-t border-slate-200">
+          <span class="text-[11px] font-bold text-blue-700 uppercase tracking-wider">4. Metadata & Notes</span>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-slate-800 font-semibold mb-1">Lead Protection Engineer <span class="text-rose-600">*</span></label>
+              <input id="modal-engineer" type="text" placeholder="e.g. John Doe / ICIS Protection Dept" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600">
+            </div>
+
+            <div>
+              <label class="block text-slate-800 font-semibold mb-1">Description / Project Scope <span class="text-rose-600">*</span></label>
+              <input id="modal-description" type="text" placeholder="e.g. Substation bay expansion and relay retrofit" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600">
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div class="pt-4 border-t border-slate-200 flex items-center justify-between">
+          <span id="modal-validation-hint" class="text-[11px] text-amber-700 font-medium flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+            <span>All fields marked with <span class="text-rose-600">*</span> are required</span>
+          </span>
+          <div class="flex items-center gap-3">
+            <button onclick="closeNewProjectModal()" type="button" class="px-4 py-2 rounded-lg bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-300 transition-colors shadow-2xs">
+              Cancel
+            </button>
+            <button id="modal-submit-btn" type="submit" disabled class="px-5 py-2 rounded-lg bg-slate-300 text-slate-500 font-bold text-xs cursor-not-allowed opacity-60 transition-all flex items-center gap-1.5">
+              <span>Create Project</span>
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- 5. CLOSE TAB CONFIRMATION & SAVE MODAL                   -->
+  <!-- ======================================================== -->
+  <div id="close-confirm-modal" onclick="if(event.target === this) dismissCloseModal()" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden antialiased select-none">
+    <div class="bg-white border border-slate-300 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col">
+      <div class="px-5 py-4 bg-slate-50 border-b border-slate-200 flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-amber-100 border border-amber-300 flex items-center justify-center text-amber-700 shrink-0">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-xs font-bold text-slate-900">Confirmación de Cierre</h3>
+          <p class="text-[11px] text-slate-500">Gestión de cambios de proyecto</p>
+        </div>
+      </div>
+
+      <div class="p-5 text-xs text-slate-700">
+        <p class="leading-relaxed font-medium">¿Desea guardar los cambios en <span id="close-confirm-filename" class="font-bold text-slate-900 font-mono"></span> antes de cerrar?</p>
+        <p class="text-[11px] text-slate-400 mt-2">Si selecciona "No Guardar", las modificaciones no guardadas en el diagrama se perderán permanentemente.</p>
+      </div>
+
+      <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2 text-xs">
+        <button onclick="dismissCloseModal()" class="px-3.5 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-700 font-semibold border border-slate-300 transition-colors shadow-2xs">
+          Cancelar
+        </button>
+        <button onclick="confirmCloseWithoutSaving()" class="px-3.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold border border-rose-300 transition-colors">
+          No Guardar
+        </button>
+        <button onclick="confirmSaveAndClose()" class="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold transition-colors shadow-2xs shadow-blue-200 flex items-center gap-1.5">
+          <span>Guardar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- 6. DEVICE LIBRARY MODAL POP-UP DIALOG                    -->
+  <!-- ======================================================== -->
+  <div id="modal-device-library" onclick="if(event.target === this) closeDeviceLibraryModal()" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden antialiased select-none">
+    <div class="bg-white border border-slate-300 rounded-2xl shadow-2xl w-full max-w-5xl overflow-hidden flex flex-col max-h-[92vh]">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-emerald-500 flex items-center justify-center shadow-sm text-white">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-slate-900 tracking-wide">Device & Equipment Library</h2>
+            <p class="text-[11px] text-slate-500 font-medium">Select and insert calibrated electrical devices into your Single Line Diagram</p>
+          </div>
+        </div>
+
+        <!-- Close Button -->
+        <button onclick="closeDeviceLibraryModal()" class="w-7 h-7 rounded-lg hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors text-sm font-bold" title="Close Modal">
+          ✕
+        </button>
+      </div>
+
+      <!-- Search & Category Filters Bar -->
+      <div class="px-6 py-3 bg-white border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 shrink-0">
+        
+        <!-- Search Input -->
+        <div class="relative w-80">
+          <svg class="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <input id="lib-device-search-input" oninput="filterLibraryDevices()" type="text" placeholder="Search devices by model, ANSI code, rating..." class="w-full bg-slate-50 border border-slate-300 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 font-medium">
+        </div>
+
+        <!-- Category Filter Dropdown List -->
+        <div class="flex items-center gap-2 text-xs">
+          <label for="lib-device-category-filter" class="font-semibold text-slate-600 text-[11px]">Category Filter:</label>
+          <select id="lib-device-category-filter" onchange="filterLibraryDevices()" class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600">
+            <option value="ALL">All Categories (4,120)</option>
+            <option value="RELAY">Protection Relays (ANSI 50/51/87/21)</option>
+            <option value="BREAKER">Circuit Breakers (ANSI 52)</option>
+            <option value="CT_VT">Instrument Transformers (CT / VT)</option>
+            <option value="XFMR">Power Transformers</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Modal Body: Split Layout (Device Catalog List + Specs Preview) -->
+      <div class="flex flex-1 overflow-hidden min-h-[460px]">
+        
+        <!-- Left: Device Selection List (Scrollable) -->
+        <div id="lib-device-list-container" class="flex-1 overflow-y-auto p-4 space-y-2 bg-slate-50/70 border-r border-slate-200">
+          <!-- Populated by renderLibraryDeviceList() -->
+        </div>
+
+        <!-- Right: Detailed Specifications Preview Panel -->
+        <aside class="w-80 bg-white p-5 flex flex-col justify-between shrink-0 overflow-y-auto">
+          <div class="space-y-4">
+            <div class="pb-3 border-b border-slate-200">
+              <span id="lib-preview-badge" class="text-[10px] uppercase font-bold text-blue-700 tracking-wider">Device Profile</span>
+              <h4 id="lib-preview-title" class="text-sm font-bold text-slate-900 mt-0.5">SEL-751 Relay</h4>
+              <p id="lib-preview-desc" class="text-[11px] text-slate-500">Digital Microprocessor Feeder Protection</p>
+            </div>
+
+            <!-- Schematic Symbol Preview -->
+            <div>
+              <span class="text-[11px] font-semibold text-slate-700 mb-1.5 block">CAD Canvas Symbol</span>
+              <div id="lib-preview-symbol-box" class="h-24 w-full bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center p-2">
+                <svg class="w-full h-full text-blue-600" viewBox="0 0 100 40">
+                  <circle cx="50" cy="20" r="14" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+                  <text x="50" y="24" text-anchor="middle" fill="#1e40af" font-size="9" font-weight="bold" font-family="monospace">50/51</text>
+                  <line x1="20" y1="20" x2="36" y2="20" stroke="#2563eb" stroke-width="2"/>
+                  <line x1="64" y1="20" x2="80" y2="20" stroke="#2563eb" stroke-width="2"/>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Settings & Compatibility Check -->
+            <div class="space-y-2 text-[11px]">
+              <span class="font-semibold text-slate-700 block">Engineering Attributes</span>
+              <div class="space-y-1.5 text-slate-600">
+                <div class="flex justify-between pb-1 border-b border-slate-100">
+                  <span class="text-slate-400">Manufacturer:</span>
+                  <span id="lib-attr-mfg" class="font-semibold text-slate-800">SEL Inc.</span>
+                </div>
+                <div class="flex justify-between pb-1 border-b border-slate-100">
+                  <span class="text-slate-400">Library Source:</span>
+                  <span id="lib-attr-source" class="font-semibold text-emerald-700">PostgreSQL Verified</span>
+                </div>
+                <div class="flex justify-between pb-1 border-b border-slate-100">
+                  <span class="text-slate-400">Standard / Rating:</span>
+                  <span id="lib-attr-standard" class="font-semibold text-slate-800">IEEE C37.112</span>
+                </div>
+                <div class="flex justify-between pb-1 border-b border-slate-100">
+                  <span class="text-slate-400">Primary Rating:</span>
+                  <span id="lib-attr-rating" class="font-semibold text-slate-800">5 A Nominal</span>
+                </div>
+                <div class="flex justify-between pb-1 border-b border-slate-100">
+                  <span class="text-slate-400">ANSI Function:</span>
+                  <span id="lib-attr-ansi" class="font-semibold text-blue-700 font-mono">50/51/67</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-4 border-t border-slate-200">
+            <span id="lib-preview-device-id" class="text-[10px] text-slate-400 block mb-2 font-mono">ID: DEV-SEL-751-ANSI</span>
+            <button id="lib-insert-btn" onclick="confirmLibraryDeviceSelection(true)" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg text-xs shadow-sm shadow-blue-200 transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+              <span>Insert Device to Canvas</span>
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+              </svg>
+            </button>
+          </div>
+        </aside>
+
+      </div>
+
+      <!-- Modal Footer Actions -->
+      <div class="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between shrink-0">
+        <div class="text-[11px] text-slate-500 font-medium">
+          Catalog: <span class="font-bold text-slate-700">4,120 calibrated components</span> available in local database
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button type="button" onclick="closeDeviceLibraryModal()" class="px-4 py-2 rounded-lg bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-300 transition-colors shadow-2xs">
+            Cancel
+          </button>
+          <button id="lib-select-btn" type="button" onclick="confirmLibraryDeviceSelection(false)" class="px-5 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white font-bold text-xs shadow-md shadow-blue-200 transition-all flex items-center gap-1.5 cursor-pointer">
+            <span>Select Device</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast Notification Pill -->
+  <div id="toast-notification" class="fixed bottom-10 right-6 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl text-xs flex items-center gap-2.5 transform translate-y-12 opacity-0 pointer-events-none transition-all duration-300 border border-slate-700">
+    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+    <span id="toast-notification-message" class="font-medium">Notification</span>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- JAVASCRIPT: Dynamic Subviews, Browser Tabs & Modals      -->
+  <!-- ======================================================== -->
+  <script>
+    // State of opened dynamic tabs
+    let openTabs = [];
+    let activeTabId = 'pinned-workspace';
+    let pendingCloseTabId = null;
+
+    // Subview Switcher (Called from Left Sidebar or internal links)
+    function switchSubview(subviewName) {
+      // Return focus to the pinned Workspace tab
+      activateWorkspaceTab();
+
+      // Hide all subviews
+      document.querySelectorAll('.subview').forEach(view => {
+        view.classList.remove('active');
+      });
+
+      // Update sidebar nav button styles
+      const navButtons = {
+        'home': document.getElementById('nav-btn-home'),
+        'recent': document.getElementById('nav-btn-recent'),
+        'templates': document.getElementById('nav-btn-templates')
+      };
+
+      Object.values(navButtons).forEach(btn => {
+        if (!btn) return;
+        btn.className = "w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-slate-700 hover:text-blue-700 hover:bg-slate-100 text-xs font-medium transition-colors text-left";
+      });
+
+      // Show requested subview
+      const targetView = document.getElementById('subview-' + subviewName);
+      if (targetView) {
+        targetView.classList.add('active');
+      }
+
+      const activeBtn = navButtons[subviewName];
+      if (activeBtn) {
+        activeBtn.className = "w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg bg-blue-50 text-blue-700 font-semibold text-xs border border-blue-200 transition-all text-left shadow-2xs";
+      }
+
+      // Update Pinned Tab Title to reflect current subview
+      const pinnedTitle = document.getElementById('pinned-tab-title');
+      if (pinnedTitle) {
+        const titles = {
+          'home': 'Workspace / Home',
+          'recent': 'Workspace / Recent Projects',
+          'templates': 'Workspace / Templates'
+        };
+        pinnedTitle.textContent = titles[subviewName] || 'Workspace';
+      }
+    }
+
+    // Activate the Pinned Workspace Tab
+    function activateWorkspaceTab() {
+      activeTabId = 'pinned-workspace';
+
+      // Style pinned tab as active
+      const pinnedTab = document.getElementById('tab-pinned-workspace');
+      pinnedTab.className = "tab-item py-1.5 px-3.5 rounded-t-lg border-t-2 border-t-blue-600 border-x border-slate-200 bg-white text-blue-700 font-bold text-xs flex items-center gap-2 cursor-pointer shadow-xs shrink-0 transition-all";
+
+      // Deactivate all dynamic tabs
+      document.querySelectorAll('.dynamic-tab-item').forEach(tab => {
+        tab.className = "dynamic-tab-item group py-1.5 px-3 rounded-t-lg border-t-2 border-transparent border-x border-transparent hover:bg-slate-200/80 bg-slate-200/60 text-slate-600 hover:text-slate-900 font-medium text-xs flex items-center gap-2 cursor-pointer shrink-0 transition-all";
+      });
+
+      // Show root workspace view, hide dynamic project view
+      document.getElementById('workspace-root-view').classList.remove('hidden');
+      document.getElementById('dynamic-project-container').classList.add('hidden');
+      document.getElementById('dynamic-project-container').classList.remove('flex');
+
+      // Hide Left Sidebar Device List and CAD tools on Home tab
+      const sidebarDeviceSection = document.getElementById('sidebar-device-list-section');
+      if (sidebarDeviceSection) sidebarDeviceSection.classList.add('hidden');
+    }
+
+    // Open a Project in a Dynamic Browser Tab
+    function openProjectTab(id, filename, icon, voltage, drcStatus, isEmpty = false) {
+      // Check if already open
+      const existingTab = openTabs.find(t => t.id === id);
+      if (!existingTab) {
+        openTabs.push({ id, filename, icon, voltage, drcStatus, isEmpty });
+        renderDynamicTabs();
+      }
+      activateProjectTab(id);
+    }
+
+    // Tab Navigation via Scroll Arrows (Switches active tab)
+    function navigateTab(direction) {
+      if (openTabs.length === 0) return;
+
+      if (direction === -1) {
+        if (activeTabId === 'pinned-workspace') return;
+        const currentIndex = openTabs.findIndex(t => t.id === activeTabId);
+        if (currentIndex === 0) {
+          activateWorkspaceTab();
+        } else if (currentIndex > 0) {
+          activateProjectTab(openTabs[currentIndex - 1].id);
+        }
+      } else if (direction === 1) {
+        if (activeTabId === 'pinned-workspace') {
+          activateProjectTab(openTabs[0].id);
+        } else {
+          const currentIndex = openTabs.findIndex(t => t.id === activeTabId);
+          if (currentIndex !== -1 && currentIndex < openTabs.length - 1) {
+            activateProjectTab(openTabs[currentIndex + 1].id);
+          }
+        }
+      }
+
+      // Scroll active tab element into view
+      setTimeout(() => {
+        const activeEl = document.querySelector('.dynamic-tab-item.border-t-blue-600') || document.getElementById('tab-pinned-workspace');
+        if (activeEl) {
+          activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+      }, 60);
+    }
+
+    // Render Dynamic Tabs into DOM
+    function renderDynamicTabs() {
+      const container = document.getElementById('dynamic-tabs-container');
+      container.innerHTML = '';
+
+      openTabs.forEach(tab => {
+        const isActive = activeTabId === tab.id;
+        const tabEl = document.createElement('div');
+        tabEl.id = 'tab-' + tab.id;
+        tabEl.onclick = () => activateProjectTab(tab.id);
+        
+        tabEl.className = isActive
+          ? "dynamic-tab-item group py-1.5 px-3 rounded-t-lg border-t-2 border-t-blue-600 border-x border-slate-200 bg-white text-blue-700 font-bold text-xs flex items-center gap-2 cursor-pointer shadow-xs shrink-0 transition-all"
+          : "dynamic-tab-item group py-1.5 px-3 rounded-t-lg border-t-2 border-transparent border-x border-transparent hover:bg-slate-200/80 bg-slate-200/60 text-slate-600 hover:text-slate-900 font-medium text-xs flex items-center gap-2 cursor-pointer shrink-0 transition-all";
+
+        tabEl.innerHTML = `
+          <span class="text-xs shrink-0">${tab.icon}</span>
+          <span class="truncate max-w-[140px]">${tab.filename}</span>
+          <button onclick="requestCloseProjectTab('${tab.id}', event)" class="w-4 h-4 rounded hover:bg-slate-300 text-slate-400 hover:text-slate-800 flex items-center justify-center text-[10px] ml-1 transition-colors" title="Close Tab">✕</button>
+        `;
+
+        container.appendChild(tabEl);
+      });
+    }
+
+    // Activate a Dynamic Project Tab
+    function activateProjectTab(id) {
+      activeTabId = id;
+      const tabData = openTabs.find(t => t.id === id);
+      if (!tabData) return;
+
+      // Deactivate pinned workspace tab
+      const pinnedTab = document.getElementById('tab-pinned-workspace');
+      pinnedTab.className = "tab-item py-1.5 px-3.5 rounded-t-lg border-t-2 border-transparent border-x border-transparent hover:bg-slate-200/80 bg-slate-200/60 text-slate-600 hover:text-slate-900 font-medium text-xs flex items-center gap-2 cursor-pointer shrink-0 transition-all";
+
+      // Re-render tab styles
+      renderDynamicTabs();
+
+      // Show Left Sidebar Device List & CAD tools on project tabs
+      const sidebarDeviceSection = document.getElementById('sidebar-device-list-section');
+      if (sidebarDeviceSection) sidebarDeviceSection.classList.remove('hidden');
+
+      // Hide root workspace and show dynamic canvas
+      document.getElementById('workspace-root-view').classList.add('hidden');
+      const dynamicContainer = document.getElementById('dynamic-project-container');
+      dynamicContainer.classList.remove('hidden');
+      dynamicContainer.classList.add('flex');
+
+      // Update Canvas Header details
+      document.getElementById('canvas-project-icon').textContent = tabData.icon;
+      document.getElementById('canvas-project-title').textContent = tabData.filename;
+      document.getElementById('canvas-project-voltage').textContent = tabData.voltage;
+      document.getElementById('canvas-project-drc').textContent = tabData.drcStatus;
+
+      // Update Footer active project string
+      document.getElementById('footer-active-project').innerHTML = `Active Project: <b class="text-slate-800 font-semibold">${tabData.filename}</b>`;
+    }
+
+    // Request Close with Save Confirmation Modal
+    function requestCloseProjectTab(id, event) {
+      if (event) event.stopPropagation();
+      const tab = openTabs.find(t => t.id === id);
+      if (!tab) return;
+      pendingCloseTabId = id;
+
+      const filenameEl = document.getElementById('close-confirm-filename');
+      if (filenameEl) filenameEl.textContent = tab.filename;
+
+      const modal = document.getElementById('close-confirm-modal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function dismissCloseModal() {
+      pendingCloseTabId = null;
+      const modal = document.getElementById('close-confirm-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function confirmCloseWithoutSaving() {
+      if (pendingCloseTabId) {
+        const idToClose = pendingCloseTabId;
+        dismissCloseModal();
+        doCloseProjectTab(idToClose);
+      }
+    }
+
+    function confirmSaveAndClose() {
+      if (pendingCloseTabId) {
+        const idToClose = pendingCloseTabId;
+        const tab = openTabs.find(t => t.id === idToClose);
+        const name = tab ? tab.filename : 'archivo';
+        dismissCloseModal();
+        showNotification(`Cambios guardados exitosamente en ${name}`);
+        doCloseProjectTab(idToClose);
+      }
+    }
+
+    function doCloseProjectTab(id) {
+      const tabIndex = openTabs.findIndex(t => t.id === id);
+      if (tabIndex === -1) return;
+
+      openTabs.splice(tabIndex, 1);
+
+      // If active tab was closed, switch to previous or pinned tab
+      if (activeTabId === id) {
+        if (openTabs.length > 0) {
+          const nextTab = openTabs[Math.max(0, tabIndex - 1)];
+          activateProjectTab(nextTab.id);
+        } else {
+          activateWorkspaceTab();
+        }
+      } else {
+        renderDynamicTabs();
+      }
+    }
+
+    // New Project Modal Controller & Form Validation
+    function validateNewProjectForm() {
+      const nameInput = document.getElementById('modal-project-name');
+      const basePowerInput = document.getElementById('modal-base-power');
+      const engineerInput = document.getElementById('modal-engineer');
+      const descInput = document.getElementById('modal-description');
+      const submitBtn = document.getElementById('modal-submit-btn');
+      const hint = document.getElementById('modal-validation-hint');
+      
+      const hasName = nameInput && nameInput.value.trim().length > 0;
+      const hasBasePower = basePowerInput && parseFloat(basePowerInput.value) > 0;
+      const hasEngineer = engineerInput && engineerInput.value.trim().length > 0;
+      const hasDesc = descInput && descInput.value.trim().length > 0;
+      const hasStandard = document.getElementById('modal-standard') && document.getElementById('modal-standard').value !== '';
+      const hasFreq = document.querySelector('input[name="modal_freq"]:checked') !== null;
+      const hasTemplate = document.querySelector('input[name="modal_template"]:checked') !== null;
+
+      const isReady = hasName && hasBasePower && hasEngineer && hasDesc && hasStandard && hasFreq && hasTemplate;
+
+      if (submitBtn) {
+        submitBtn.disabled = !isReady;
+        if (isReady) {
+          submitBtn.className = "px-5 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white font-bold text-xs shadow-md shadow-blue-200 transition-all flex items-center gap-1.5 cursor-pointer opacity-100";
+          if (hint) {
+            hint.className = "text-[11px] text-emerald-700 font-medium flex items-center gap-1.5";
+            hint.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span>All fields completed</span>';
+          }
+        } else {
+          submitBtn.className = "px-5 py-2 rounded-lg bg-slate-300 text-slate-500 font-bold text-xs cursor-not-allowed opacity-60 transition-all flex items-center gap-1.5";
+          if (hint) {
+            hint.className = "text-[11px] text-amber-700 font-medium flex items-center gap-1.5";
+            hint.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span><span>Complete all fields to create project</span>';
+          }
+        }
+      }
+    }
+
+    function openNewProjectModal() {
+      const modal = document.getElementById('new-project-modal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        validateNewProjectForm();
+      }
+    }
+
+    function closeNewProjectModal() {
+      const modal = document.getElementById('new-project-modal');
+      if (modal) {
+        modal.classList.add('hidden');
+      }
+    }
+
+    function handleNewProjectSubmit() {
+      const nameInput = document.getElementById('modal-project-name');
+      if (!nameInput || !nameInput.value.trim()) return;
+      const projectName = nameInput.value.trim();
+      const filename = projectName.endsWith('.pcd') ? projectName : projectName + '.pcd';
+      
+      const templateVal = (document.querySelector('input[name="modal_template"]:checked') || {}).value || 'blank';
+      const isEmpty = (templateVal === 'blank');
+
+      closeNewProjectModal();
+
+      // Clear user input fields per requirement
+      nameInput.value = '';
+      const engInput = document.getElementById('modal-engineer');
+      if (engInput) engInput.value = '';
+      const descInput = document.getElementById('modal-description');
+      if (descInput) descInput.value = '';
+
+      // Re-lock the Create Project button
+      validateNewProjectForm();
+      
+      // Open as new dynamic project tab (Icon is always Single Line Diagram '⚡')
+      const newId = 'pcd-' + Date.now();
+      const icon = '⚡';
+      const drc = isEmpty ? 'DRC: 0 Elements' : 'DRC: Pending';
+      openProjectTab(newId, filename, icon, '115 kV Substation', drc, isEmpty);
+    }
+
+    // ========================================================
+    // CAD Canvas Zoom, Pan & Sheet Format Controller
+    // ========================================================
+    let currentZoom = 100;
+    let currentSheetFormat = 'ANSI_B';
+
+    const sheetDimensions = {
+      'ANSI_B': { width: 820, height: 530, name: 'ANSI B', label: 'Sheet: ANSI B (11" × 17" Tabloid)' },
+      'ANSI_A': { width: 680, height: 525, name: 'ANSI A', label: 'Sheet: ANSI A (8.5" × 11" Letter)' },
+      'ANSI_C': { width: 960, height: 740, name: 'ANSI C', label: 'Sheet: ANSI C (17" × 22")' },
+      'ANSI_D': { width: 1100, height: 710, name: 'ANSI D', label: 'Sheet: ANSI D (22" × 34")' },
+      'ISO_A4': { width: 740, height: 523, name: 'ISO A4', label: 'Sheet: ISO A4 (210 × 297 mm)' },
+      'ISO_A3': { width: 900, height: 636, name: 'ISO A3', label: 'Sheet: ISO A3 (297 × 420 mm)' },
+      'ISO_A2': { width: 1040, height: 735, name: 'ISO A2', label: 'Sheet: ISO A2 (420 × 594 mm)' },
+      'ISO_A1': { width: 1200, height: 848, name: 'ISO A1', label: 'Sheet: ISO A1 (594 × 841 mm)' }
+    };
+
+    function setZoom(val) {
+      currentZoom = Math.max(25, Math.min(400, Math.round(val)));
+      const wrapper = document.getElementById('cad-sheet-zoom-wrapper');
+      if (wrapper) {
+        wrapper.style.transform = `scale(${currentZoom / 100})`;
+      }
+      const label = document.getElementById('canvas-zoom-label');
+      if (label) label.textContent = `${currentZoom}%`;
+      const statusLabel = document.getElementById('sheet-zoom-status');
+      if (statusLabel) statusLabel.textContent = `Zoom: ${currentZoom}%`;
+    }
+
+    function zoomIn() {
+      const step = currentZoom >= 100 ? 10 : 5;
+      setZoom(currentZoom + step);
+    }
+
+    function zoomOut() {
+      const step = currentZoom > 100 ? 10 : 5;
+      setZoom(currentZoom - step);
+    }
+
+    function zoomFitIn() {
+      setZoom(100);
+      const viewport = document.getElementById('cad-canvas-viewport');
+      if (viewport) {
+        viewport.scrollTo({
+          top: (viewport.scrollHeight - viewport.clientHeight) / 2,
+          left: (viewport.scrollWidth - viewport.clientWidth) / 2,
+          behavior: 'smooth'
+        });
+      }
+    }
+
+    function changeSheetFormat(formatKey) {
+      const config = sheetDimensions[formatKey] || sheetDimensions['ANSI_B'];
+      currentSheetFormat = formatKey;
+      const sheet = document.getElementById('engineering-sheet-boundary');
+      if (sheet) {
+        sheet.style.width = config.width + 'px';
+        sheet.style.height = config.height + 'px';
+      }
+      const dimLabel = document.getElementById('sheet-dimension-label');
+      if (dimLabel) dimLabel.textContent = config.label;
+      const tagLabel = document.getElementById('sheet-format-name-tag');
+      if (tagLabel) tagLabel.textContent = config.name;
+      showNotification(`Formato de hoja actualizado: ${config.name}`);
+    }
+
+    // CAD Placement Tool State
+    let activeCadTool = 'select';
+    function setCadTool(tool) {
+      activeCadTool = tool;
+      const tools = ['select', 'bus', 'net'];
+      tools.forEach(t => {
+        const btn = document.getElementById('tool-btn-' + t);
+        if (!btn) return;
+        if (t === tool) {
+          btn.className = "px-2 py-1 rounded bg-white text-blue-700 font-bold shadow-2xs flex items-center justify-center gap-1 transition-all";
+        } else {
+          btn.className = "px-2 py-1 rounded hover:bg-slate-100 text-slate-700 font-medium flex items-center justify-center gap-1 transition-all";
+        }
+      });
+      showNotification(`Herramienta activa: ${tool.toUpperCase()}`);
+    }
+
+    // ========================================================
+    // Device Library Catalog & Selection
+    // ========================================================
+    const libraryDevices = [
+      {
+        id: "DEV-SEL-751",
+        name: "SEL-751 Feeder Protection Relay",
+        mfg: "Schweitzer Engineering Laboratories",
+        category: "RELAY",
+        ansi: "ANSI 50/51/67",
+        icon: "🛡️",
+        standard: "IEEE C37.112",
+        rating: "5 A Nominal (TOC + IOC)",
+        badgeBg: "bg-blue-100 text-blue-800",
+        desc: "Digital Microprocessor Feeder Protection & Arc-Flash Detection",
+        symbolSvg: `<svg class="w-full h-full text-blue-600" viewBox="0 0 100 40"><circle cx="50" cy="20" r="14" fill="#ffffff" stroke="#2563eb" stroke-width="2"/><text x="50" y="24" text-anchor="middle" fill="#1e40af" font-size="9" font-weight="bold" font-family="monospace">50/51</text><line x1="20" y1="20" x2="36" y2="20" stroke="#2563eb" stroke-width="2"/><line x1="64" y1="20" x2="80" y2="20" stroke="#2563eb" stroke-width="2"/></svg>`
+      },
+      {
+        id: "DEV-SEL-487E",
+        name: "SEL-487E Transformer Protection Relay",
+        mfg: "Schweitzer Engineering Laboratories",
+        category: "RELAY",
+        ansi: "ANSI 87T / 50 / 51",
+        icon: "🔄",
+        standard: "IEEE C37.91",
+        rating: "Multi-winding Differential",
+        badgeBg: "bg-amber-100 text-amber-800",
+        desc: "Advanced Dual-Slope Current Differential with Overfluxing & Restricted Earth Fault",
+        symbolSvg: `<svg class="w-full h-full text-amber-600" viewBox="0 0 100 40"><circle cx="42" cy="20" r="12" fill="#ffffff" stroke="#d97706" stroke-width="2"/><circle cx="58" cy="20" r="12" fill="#ffffff" stroke="#d97706" stroke-width="2"/><text x="50" y="23" text-anchor="middle" fill="#b45309" font-size="8" font-weight="bold" font-family="monospace">87T</text><line x1="15" y1="20" x2="30" y2="20" stroke="#d97706" stroke-width="2"/><line x1="70" y1="20" x2="85" y2="20" stroke="#d97706" stroke-width="2"/></svg>`
+      },
+      {
+        id: "DEV-ABB-RET670",
+        name: "ABB Relion RET670 Line & Feeder IED",
+        mfg: "ABB Power Grids / Hitachi Energy",
+        category: "RELAY",
+        ansi: "ANSI 21 / 87L",
+        icon: "🛡️",
+        standard: "IEC 60255 / IEEE",
+        rating: "Sub-cycle Transmission Protection",
+        badgeBg: "bg-blue-100 text-blue-800",
+        desc: "Distance Quadrilateral & Mho Protection with Teleprotection Interface",
+        symbolSvg: `<svg class="w-full h-full text-blue-600" viewBox="0 0 100 40"><polygon points="50,8 65,32 35,32" fill="#ffffff" stroke="#2563eb" stroke-width="2"/><text x="50" y="27" text-anchor="middle" fill="#1e40af" font-size="8" font-weight="bold" font-family="monospace">21</text><line x1="15" y1="20" x2="35" y2="20" stroke="#2563eb" stroke-width="2"/><line x1="65" y1="20" x2="85" y2="20" stroke="#2563eb" stroke-width="2"/></svg>`
+      },
+      {
+        id: "DEV-SIEMENS-7SJ85",
+        name: "Siemens SIPROTEC 5 7SJ85 Overcurrent Relay",
+        mfg: "Siemens AG",
+        category: "RELAY",
+        ansi: "ANSI 50/51/67N",
+        icon: "🛡️",
+        standard: "IEC 60255-151",
+        rating: "Universal MV/HV Feeder Control",
+        badgeBg: "bg-blue-100 text-blue-800",
+        desc: "Modular Protection & Automation Unit with Synchrocheck and Power Quality",
+        symbolSvg: `<svg class="w-full h-full text-blue-600" viewBox="0 0 100 40"><circle cx="50" cy="20" r="14" fill="#ffffff" stroke="#2563eb" stroke-width="2"/><text x="50" y="24" text-anchor="middle" fill="#1e40af" font-size="8" font-weight="bold" font-family="monospace">67N</text><line x1="20" y1="20" x2="36" y2="20" stroke="#2563eb" stroke-width="2"/><line x1="64" y1="20" x2="80" y2="20" stroke="#2563eb" stroke-width="2"/></svg>`
+      },
+      {
+        id: "DEV-SCHNEIDER-P3",
+        name: "Schneider Easergy P3 Feeder Relay",
+        mfg: "Schneider Electric",
+        category: "RELAY",
+        ansi: "ANSI 50/51/49",
+        icon: "🛡️",
+        standard: "IEC 60255",
+        rating: "1A / 5A Dual Input",
+        badgeBg: "bg-emerald-100 text-emerald-800",
+        desc: "Directional & Non-Directional Overcurrent Relay with Thermal Overload",
+        symbolSvg: `<svg class="w-full h-full text-emerald-600" viewBox="0 0 100 40"><circle cx="50" cy="20" r="14" fill="#ffffff" stroke="#16a34a" stroke-width="2"/><text x="50" y="24" text-anchor="middle" fill="#15803d" font-size="8" font-weight="bold" font-family="monospace">50/51</text><line x1="20" y1="20" x2="36" y2="20" stroke="#16a34a" stroke-width="2"/><line x1="64" y1="20" x2="80" y2="20" stroke="#16a34a" stroke-width="2"/></svg>`
+      },
+      {
+        id: "DEV-ABB-VD4",
+        name: "ABB VD4 Medium Voltage Vacuum Breaker",
+        mfg: "ABB Electrification",
+        category: "BREAKER",
+        ansi: "ANSI 52 Breaker",
+        icon: "⚡",
+        standard: "IEC 62271-100 / IEEE C37.06",
+        rating: "17.5 kV Max • 31.5 kA Sym",
+        badgeBg: "bg-emerald-100 text-emerald-800",
+        desc: "Stored-energy mechanism vacuum circuit breaker for indoor switchgear",
+        symbolSvg: `<svg class="w-full h-full text-blue-600" viewBox="0 0 100 40"><rect x="36" y="8" width="28" height="24" fill="#ffffff" stroke="#2563eb" stroke-width="2.5" rx="3"/><text x="50" y="24" text-anchor="middle" fill="#1e40af" font-size="10" font-weight="bold">52</text><line x1="15" y1="20" x2="36" y2="20" stroke="#2563eb" stroke-width="2.5"/><line x1="64" y1="20" x2="85" y2="20" stroke="#2563eb" stroke-width="2.5"/></svg>`
+      },
+      {
+        id: "DEV-SIEMENS-3AE",
+        name: "Siemens SION 3AE Vacuum Circuit Breaker",
+        mfg: "Siemens AG",
+        category: "BREAKER",
+        ansi: "ANSI 52 Breaker",
+        icon: "⚡",
+        standard: "IEC 62271-100",
+        rating: "24 kV • 25 kA • 1250 A",
+        badgeBg: "bg-emerald-100 text-emerald-800",
+        desc: "Compact vacuum circuit breaker with maintenance-free interrupters",
+        symbolSvg: `<svg class="w-full h-full text-blue-600" viewBox="0 0 100 40"><rect x="36" y="8" width="28" height="24" fill="#ffffff" stroke="#2563eb" stroke-width="2.5" rx="3"/><text x="50" y="24" text-anchor="middle" fill="#1e40af" font-size="10" font-weight="bold">52</text><line x1="15" y1="20" x2="36" y2="20" stroke="#2563eb" stroke-width="2.5"/><line x1="64" y1="20" x2="85" y2="20" stroke="#2563eb" stroke-width="2.5"/></svg>`
+      },
+      {
+        id: "DEV-GE-C800",
+        name: "Substation CT 1200:5A Class C800",
+        mfg: "GE Grid Solutions",
+        category: "CT_VT",
+        ansi: "Instrument CT",
+        icon: "🔄",
+        standard: "IEEE C57.13",
+        rating: "Ratio 1200:5 A • Class C800",
+        badgeBg: "bg-amber-100 text-amber-800",
+        desc: "Bushing type relaying current transformer with non-linear saturation curve",
+        symbolSvg: `<svg class="w-full h-full text-amber-600" viewBox="0 0 100 40"><circle cx="50" cy="20" r="12" fill="#ffffff" stroke="#d97706" stroke-width="2"/><text x="50" y="24" text-anchor="middle" fill="#b45309" font-size="8" font-weight="bold" font-family="monospace">CT</text><line x1="15" y1="20" x2="38" y2="20" stroke="#d97706" stroke-width="2"/><line x1="62" y1="20" x2="85" y2="20" stroke="#d97706" stroke-width="2"/></svg>`
+      },
+      {
+        id: "DEV-ABB-TPU",
+        name: "ABB TPU 60.11 Indoor Voltage Transformer",
+        mfg: "ABB Electrification",
+        category: "CT_VT",
+        ansi: "Instrument VT",
+        icon: "🔄",
+        standard: "IEC 61869-3 / IEEE C57.13",
+        rating: "13800V / 115V • Class 0.2",
+        badgeBg: "bg-amber-100 text-amber-800",
+        desc: "Cast resin medium voltage indoor potential transformer with thermal burden rating",
+        symbolSvg: `<svg class="w-full h-full text-amber-600" viewBox="0 0 100 40"><circle cx="44" cy="20" r="10" fill="#ffffff" stroke="#d97706" stroke-width="2"/><circle cx="56" cy="20" r="10" fill="#ffffff" stroke="#d97706" stroke-width="2"/><line x1="15" y1="20" x2="34" y2="20" stroke="#d97706" stroke-width="2"/><line x1="66" y1="20" x2="85" y2="20" stroke="#d97706" stroke-width="2"/></svg>`
+      },
+      {
+        id: "DEV-SIEMENS-XFMR-40MVA",
+        name: "40 MVA ONAN/ONAF Power Transformer",
+        mfg: "Siemens Energy",
+        category: "XFMR",
+        ansi: "Two-Winding Power XFMR",
+        icon: "⚙️",
+        standard: "IEEE C57.12.00",
+        rating: "115 / 13.8 kV • Dyn11",
+        badgeBg: "bg-purple-100 text-purple-800",
+        desc: "Three-phase step-down substation transformer with on-load tap changer (OLTC)",
+        symbolSvg: `<svg class="w-full h-full text-purple-600" viewBox="0 0 100 40"><circle cx="42" cy="20" r="12" fill="#ffffff" stroke="#9333ea" stroke-width="2"/><circle cx="58" cy="20" r="12" fill="#ffffff" stroke="#9333ea" stroke-width="2"/><line x1="15" y1="20" x2="30" y2="20" stroke="#9333ea" stroke-width="2"/><line x1="70" y1="20" x2="85" y2="20" stroke="#9333ea" stroke-width="2"/></svg>`
+      }
+    ];
+
+    let selectedLibraryDeviceId = "DEV-SEL-751";
+
+    function openDeviceLibraryModal() {
+      const modal = document.getElementById('modal-device-library');
+      if (modal) {
+        modal.classList.remove('hidden');
+        renderLibraryDeviceList();
+        updateLibraryPreview(selectedLibraryDeviceId);
+      }
+    }
+
+    function closeDeviceLibraryModal() {
+      const modal = document.getElementById('modal-device-library');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function renderLibraryDeviceList() {
+      const container = document.getElementById('lib-device-list-container');
+      if (!container) return;
+      const search = (document.getElementById('lib-device-search-input').value || '').toLowerCase();
+      const cat = document.getElementById('lib-device-category-filter').value;
+
+      const filtered = libraryDevices.filter(d => {
+        const matchesCat = cat === 'ALL' || d.category === cat;
+        const matchesSearch = d.name.toLowerCase().includes(search) || 
+                              d.mfg.toLowerCase().includes(search) || 
+                              d.ansi.toLowerCase().includes(search) ||
+                              d.id.toLowerCase().includes(search);
+        return matchesCat && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="h-48 flex flex-col items-center justify-center text-slate-400 text-xs">
+            <svg class="w-8 h-8 mb-2 stroke-current" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span>No devices match the criteria.</span>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = '';
+      filtered.forEach(dev => {
+        const isSelected = dev.id === selectedLibraryDeviceId;
+        const itemEl = document.createElement('div');
+        itemEl.onclick = () => selectLibraryDevice(dev.id);
+        itemEl.ondblclick = () => { selectLibraryDevice(dev.id); confirmLibraryDeviceSelection(); };
+        
+        itemEl.className = isSelected
+          ? "bg-blue-50/70 border-2 border-blue-600 rounded-xl p-3 shadow-xs cursor-pointer transition-all flex items-center justify-between group"
+          : "bg-white border border-slate-200 hover:border-blue-400 hover:bg-slate-50/60 rounded-xl p-3 shadow-2xs cursor-pointer transition-all flex items-center justify-between group";
+
+        itemEl.innerHTML = `
+          <div class="flex items-center gap-3 min-w-0 flex-1 mr-3">
+            <div class="w-9 h-9 rounded-lg ${isSelected ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 group-hover:bg-blue-50 group-hover:text-blue-700'} flex items-center justify-center text-base shrink-0 font-bold transition-colors">
+              ${dev.icon}
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2">
+                <h4 class="text-xs font-bold text-slate-900 group-hover:text-blue-600 truncate">${dev.name}</h4>
+                <span class="px-1.5 py-0.2 rounded text-[9px] ${dev.badgeBg} font-mono font-bold shrink-0">${dev.ansi}</span>
+              </div>
+              <div class="text-[10px] text-slate-500 truncate mt-0.5 flex items-center gap-2">
+                <span class="font-medium">${dev.mfg}</span>
+                <span>•</span>
+                <span class="text-slate-600 font-mono">${dev.rating}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 shrink-0 text-right">
+            <div class="hidden sm:block text-[10px]">
+              <span class="text-emerald-700 font-bold flex items-center gap-1">● Calibrated</span>
+              <span class="text-slate-400 font-mono">${dev.standard}</span>
+            </div>
+            <div class="w-5 flex justify-center">
+              ${isSelected 
+                ? '<div class="w-4 h-4 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold">✓</div>' 
+                : '<div class="w-4 h-4 rounded-full border border-slate-300 group-hover:border-blue-400"></div>'}
+            </div>
+          </div>
+        `;
+
+        container.appendChild(itemEl);
+      });
+    }
+
+    function selectLibraryDevice(id) {
+      selectedLibraryDeviceId = id;
+      renderLibraryDeviceList();
+      updateLibraryPreview(id);
+    }
+
+    function updateLibraryPreview(id) {
+      const dev = libraryDevices.find(d => d.id === id);
+      if (!dev) return;
+
+      const titleEl = document.getElementById('lib-preview-title');
+      if (titleEl) titleEl.textContent = dev.name;
+      const descEl = document.getElementById('lib-preview-desc');
+      if (descEl) descEl.textContent = dev.desc;
+      const badgeEl = document.getElementById('lib-preview-badge');
+      if (badgeEl) badgeEl.textContent = dev.category + " Specification";
+      const symBox = document.getElementById('lib-preview-symbol-box');
+      if (symBox) symBox.innerHTML = dev.symbolSvg;
+      const idEl = document.getElementById('lib-preview-device-id');
+      if (idEl) idEl.textContent = "ID: " + dev.id;
+
+      const mfgEl = document.getElementById('lib-attr-mfg');
+      if (mfgEl) mfgEl.textContent = dev.mfg;
+      const stdEl = document.getElementById('lib-attr-standard');
+      if (stdEl) stdEl.textContent = dev.standard;
+      const ratEl = document.getElementById('lib-attr-rating');
+      if (ratEl) ratEl.textContent = dev.rating;
+      const ansiEl = document.getElementById('lib-attr-ansi');
+      if (ansiEl) ansiEl.textContent = dev.ansi;
+
+      // Lock buttons if device is already in sidebarDevices list
+      const isAlreadyInList = sidebarDevices.some(d => d.baseId === dev.id || d.id === dev.id);
+      const selectBtn = document.getElementById('lib-select-btn');
+      const insertBtn = document.getElementById('lib-insert-btn');
+
+      if (isAlreadyInList) {
+        if (selectBtn) {
+          selectBtn.disabled = true;
+          selectBtn.className = "px-5 py-2 rounded-lg bg-slate-300 text-slate-500 font-bold text-xs cursor-not-allowed opacity-50 flex items-center gap-1.5 select-none";
+          selectBtn.innerHTML = `
+            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            <span>Already in Device List</span>
+          `;
+        }
+        if (insertBtn) {
+          insertBtn.disabled = true;
+          insertBtn.className = "w-full bg-slate-300 text-slate-500 font-bold py-2 px-3 rounded-lg text-xs cursor-not-allowed opacity-50 flex items-center justify-center gap-1.5 select-none";
+          insertBtn.innerHTML = `
+            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            <span>Already in Device List</span>
+          `;
+        }
+      } else {
+        if (selectBtn) {
+          selectBtn.disabled = false;
+          selectBtn.className = "px-5 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white font-bold text-xs shadow-md shadow-blue-200 transition-all flex items-center gap-1.5 cursor-pointer";
+          selectBtn.innerHTML = `<span>Select Device</span>`;
+        }
+        if (insertBtn) {
+          insertBtn.disabled = false;
+          insertBtn.className = "w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg text-xs shadow-sm shadow-blue-200 transition-colors flex items-center justify-center gap-1.5 cursor-pointer";
+          insertBtn.innerHTML = `
+            <span>Insert Device to Canvas</span>
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+            </svg>
+          `;
+        }
+      }
+    }
+
+    function filterLibraryDevices() {
+      renderLibraryDeviceList();
+    }
+
+    // ========================================================
+    // CAD Symbols with Numbered Terminals Generator
+    // ========================================================
+    function getCadSymbolSvgWithTerminals(category, ansiCode, name) {
+      const cat = (category || '').toUpperCase();
+      const ansi = (ansiCode || '').toUpperCase();
+
+      if (cat === 'BREAKER' || ansi.includes('52')) {
+        // Circuit Breaker (ANSI 52) with Terminals 1 (Top/In) and 2 (Bottom/Out)
+        return `
+          <svg viewBox="0 0 100 68" class="w-full h-full">
+            <!-- Top lead wire -->
+            <line x1="50" y1="12" x2="50" y2="24" stroke="#1e293b" stroke-width="2"/>
+            <!-- Breaker body box -->
+            <rect x="36" y="24" width="28" height="22" rx="2" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+            <line x1="39" y1="27" x2="61" y2="43" stroke="#2563eb" stroke-width="2"/>
+            <line x1="61" y1="27" x2="39" y2="43" stroke="#2563eb" stroke-width="2"/>
+            <!-- Bottom lead wire -->
+            <line x1="50" y1="46" x2="50" y2="56" stroke="#1e293b" stroke-width="2"/>
+            <!-- Terminal 1 (Top) -->
+            <circle cx="50" cy="8" r="5" fill="#2563eb" stroke="#ffffff" stroke-width="1.5"/>
+            <text x="50" y="10.5" text-anchor="middle" fill="#ffffff" font-size="6" font-weight="bold" font-family="sans-serif">1</text>
+            <!-- Terminal 2 (Bottom) -->
+            <circle cx="50" cy="60" r="5" fill="#2563eb" stroke="#ffffff" stroke-width="1.5"/>
+            <text x="50" y="62.5" text-anchor="middle" fill="#ffffff" font-size="6" font-weight="bold" font-family="sans-serif">2</text>
+            <!-- ANSI Code -->
+            <text x="70" y="38" fill="#1e40af" font-size="7.5" font-weight="bold" font-family="monospace">52</text>
+          </svg>
+        `;
+      } else if (cat === 'CT_VT' || ansi.includes('VT') || ansi.includes('CT')) {
+        if (ansi.includes('VT') || (name && name.toLowerCase().includes('voltage'))) {
+          // Voltage Transformer with Terminals H1, H2 (Primary) and X1, X2 (Secondary)
+          return `
+            <svg viewBox="0 0 100 68" class="w-full h-full">
+              <!-- Dual Coils -->
+              <circle cx="44" cy="34" r="11" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
+              <circle cx="56" cy="34" r="11" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
+              <!-- Stubs -->
+              <line x1="14" y1="25" x2="33" y2="25" stroke="#d97706" stroke-width="1.5"/>
+              <line x1="14" y1="43" x2="33" y2="43" stroke="#d97706" stroke-width="1.5"/>
+              <line x1="67" y1="25" x2="86" y2="25" stroke="#d97706" stroke-width="1.5"/>
+              <line x1="67" y1="43" x2="86" y2="43" stroke="#d97706" stroke-width="1.5"/>
+              <!-- Primary Terminals H1, H2 -->
+              <circle cx="10" cy="25" r="4.5" fill="#d97706" stroke="#ffffff" stroke-width="1.5"/>
+              <text x="10" y="27" text-anchor="middle" fill="#ffffff" font-size="4.5" font-weight="bold" font-family="sans-serif">H1</text>
+              <circle cx="10" cy="43" r="4.5" fill="#d97706" stroke="#ffffff" stroke-width="1.5"/>
+              <text x="10" y="45" text-anchor="middle" fill="#ffffff" font-size="4.5" font-weight="bold" font-family="sans-serif">H2</text>
+              <!-- Secondary Terminals X1, X2 -->
+              <circle cx="90" cy="25" r="4.5" fill="#b45309" stroke="#ffffff" stroke-width="1.5"/>
+              <text x="90" y="27" text-anchor="middle" fill="#ffffff" font-size="4.5" font-weight="bold" font-family="sans-serif">X1</text>
+              <circle cx="90" cy="43" r="4.5" fill="#b45309" stroke="#ffffff" stroke-width="1.5"/>
+              <text x="90" y="45" text-anchor="middle" fill="#ffffff" font-size="4.5" font-weight="bold" font-family="sans-serif">X2</text>
+              <text x="50" y="58" text-anchor="middle" fill="#b45309" font-size="6" font-weight="bold" font-family="monospace">VT</text>
+            </svg>
+          `;
+        } else {
+          // Current Transformer (CT) with Line P1, P2 and Secondary S1, S2
+          return `
+            <svg viewBox="0 0 100 68" class="w-full h-full">
+              <!-- Primary Line passing through -->
+              <line x1="14" y1="34" x2="86" y2="34" stroke="#d97706" stroke-width="2.5"/>
+              <!-- CT Toroid Coil -->
+              <circle cx="50" cy="34" r="14" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
+              <text x="50" y="37" text-anchor="middle" fill="#b45309" font-size="7" font-weight="bold" font-family="monospace">CT</text>
+              <!-- Secondary tap stubs -->
+              <line x1="43" y1="20" x2="43" y2="12" stroke="#d97706" stroke-width="1.5"/>
+              <line x1="57" y1="20" x2="57" y2="12" stroke="#d97706" stroke-width="1.5"/>
+              <!-- Primary Terminal P1 (Left) -->
+              <circle cx="10" cy="34" r="5" fill="#d97706" stroke="#ffffff" stroke-width="1.5"/>
+              <text x="10" y="36" text-anchor="middle" fill="#ffffff" font-size="5" font-weight="bold" font-family="sans-serif">P1</text>
+              <!-- Primary Terminal P2 (Right) -->
+              <circle cx="90" cy="34" r="5" fill="#d97706" stroke="#ffffff" stroke-width="1.5"/>
+              <text x="90" y="36" text-anchor="middle" fill="#ffffff" font-size="5" font-weight="bold" font-family="sans-serif">P2</text>
+              <!-- Secondary Terminal S1 (Top Left) -->
+              <circle cx="43" cy="8" r="4.5" fill="#b45309" stroke="#ffffff" stroke-width="1.5"/>
+              <text x="43" y="10" text-anchor="middle" fill="#ffffff" font-size="4.5" font-weight="bold" font-family="sans-serif">S1</text>
+              <!-- Secondary Terminal S2 (Top Right) -->
+              <circle cx="57" cy="8" r="4.5" fill="#b45309" stroke="#ffffff" stroke-width="1.5"/>
+              <text x="57" y="10" text-anchor="middle" fill="#ffffff" font-size="4.5" font-weight="bold" font-family="sans-serif">S2</text>
+            </svg>
+          `;
+        }
+      } else if (cat === 'XFMR' || ansi.includes('XFMR')) {
+        // Power Transformer with HV Terminals H1, H2 and LV Terminals X1, X2
+        return `
+          <svg viewBox="0 0 100 68" class="w-full h-full">
+            <!-- Interlocking Coils -->
+            <circle cx="42" cy="34" r="13" fill="#ffffff" stroke="#9333ea" stroke-width="2"/>
+            <circle cx="58" cy="34" r="13" fill="#ffffff" stroke="#9333ea" stroke-width="2"/>
+            <!-- Leads -->
+            <line x1="14" y1="24" x2="30" y2="24" stroke="#9333ea" stroke-width="1.5"/>
+            <line x1="14" y1="44" x2="30" y2="44" stroke="#9333ea" stroke-width="1.5"/>
+            <line x1="70" y1="24" x2="86" y2="24" stroke="#9333ea" stroke-width="1.5"/>
+            <line x1="70" y1="44" x2="86" y2="44" stroke="#9333ea" stroke-width="1.5"/>
+            <!-- HV Terminals H1, H2 -->
+            <circle cx="10" cy="24" r="4.5" fill="#9333ea" stroke="#ffffff" stroke-width="1.5"/>
+            <text x="10" y="26" text-anchor="middle" fill="#ffffff" font-size="4.5" font-weight="bold" font-family="sans-serif">H1</text>
+            <circle cx="10" cy="44" r="4.5" fill="#9333ea" stroke="#ffffff" stroke-width="1.5"/>
+            <text x="10" y="46" text-anchor="middle" fill="#ffffff" font-size="4.5" font-weight="bold" font-family="sans-serif">H2</text>
+            <!-- LV Terminals X1, X2 -->
+            <circle cx="90" cy="24" r="4.5" fill="#7e22ce" stroke="#ffffff" stroke-width="1.5"/>
+            <text x="90" y="26" text-anchor="middle" fill="#ffffff" font-size="4.5" font-weight="bold" font-family="sans-serif">X1</text>
+            <circle cx="90" cy="44" r="4.5" fill="#7e22ce" stroke="#ffffff" stroke-width="1.5"/>
+            <text x="90" y="46" text-anchor="middle" fill="#ffffff" font-size="4.5" font-weight="bold" font-family="sans-serif">X2</text>
+            <text x="50" y="58" text-anchor="middle" fill="#7e22ce" font-size="6" font-weight="bold" font-family="monospace">XFMR</text>
+          </svg>
+        `;
+      } else {
+        // Protection Relays (ANSI 50/51/87/21) with 4 Numbered Terminals 1, 2, 3, 4
+        const displayAnsi = ansi.includes('87') ? '87' : ansi.includes('21') ? '21' : '50/51';
+        return `
+          <svg viewBox="0 0 100 68" class="w-full h-full">
+            <!-- Center Relay Circle -->
+            <circle cx="50" cy="34" r="16" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+            <text x="50" y="37" text-anchor="middle" fill="#1e40af" font-size="7.5" font-weight="bold" font-family="monospace">${displayAnsi}</text>
+            <!-- Sensing & Trip Leads -->
+            <line x1="14" y1="24" x2="34" y2="24" stroke="#2563eb" stroke-width="1.5"/>
+            <line x1="14" y1="44" x2="34" y2="44" stroke="#2563eb" stroke-width="1.5"/>
+            <line x1="66" y1="24" x2="86" y2="24" stroke="#2563eb" stroke-width="1.5"/>
+            <line x1="66" y1="44" x2="86" y2="44" stroke="#2563eb" stroke-width="1.5"/>
+            <!-- Terminal 1 (Top Left) -->
+            <circle cx="10" cy="24" r="4.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.5"/>
+            <text x="10" y="26.5" text-anchor="middle" fill="#ffffff" font-size="5" font-weight="bold" font-family="sans-serif">1</text>
+            <!-- Terminal 2 (Bottom Left) -->
+            <circle cx="10" cy="44" r="4.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.5"/>
+            <text x="10" y="46.5" text-anchor="middle" fill="#ffffff" font-size="5" font-weight="bold" font-family="sans-serif">2</text>
+            <!-- Terminal 3 (Top Right) -->
+            <circle cx="90" cy="24" r="4.5" fill="#1d4ed8" stroke="#ffffff" stroke-width="1.5"/>
+            <text x="90" y="26.5" text-anchor="middle" fill="#ffffff" font-size="5" font-weight="bold" font-family="sans-serif">3</text>
+            <!-- Terminal 4 (Bottom Right) -->
+            <circle cx="90" cy="44" r="4.5" fill="#1d4ed8" stroke="#ffffff" stroke-width="1.5"/>
+            <text x="90" y="46.5" text-anchor="middle" fill="#ffffff" font-size="5" font-weight="bold" font-family="sans-serif">4</text>
+          </svg>
+        `;
+      }
+    }
+
+    // ========================================================
+    // Sidebar Device List View (2 in series per row, CAD symbols & Tooltips)
+    // ========================================================
+    let sidebarDevices = [];
+    let selectedSidebarDeviceId = null;
+    let draggedSidebarDeviceId = null;
+
+    function renderSidebarDeviceGrid() {
+      const container = document.getElementById('sidebar-device-grid');
+      if (!container) return;
+
+      if (sidebarDevices.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-2 py-6 px-2 text-center text-[10px] text-slate-400 font-medium leading-relaxed select-none">
+            No hay dispositivos agregados.<br>Presione <b class="text-blue-600 font-semibold">"add"</b> para insertar piezas.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = '';
+      sidebarDevices.forEach(dev => {
+        const isSelected = dev.id === selectedSidebarDeviceId;
+        const item = document.createElement('div');
+        item.setAttribute('draggable', 'true');
+        item.ondragstart = (e) => handleSidebarDragStart(e, dev.id);
+        item.ondragend = (e) => handleSidebarDragEnd(e);
+        item.onclick = () => selectSidebarDevice(dev.id);
+        item.onmouseenter = (e) => showDeviceTooltip(e, dev.id);
+        item.onmouseleave = () => hideDeviceTooltip();
+
+        item.className = isSelected
+          ? "relative border-2 border-blue-600 bg-blue-50/70 rounded-lg p-1.5 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing shadow-xs transition-all ring-1 ring-blue-500 select-none group"
+          : "relative border border-slate-300 hover:border-blue-400 bg-white rounded-lg p-1.5 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing hover:shadow-xs transition-all select-none group";
+
+        item.innerHTML = `
+          <!-- CAD Symbol (Centered) -->
+          <div class="w-full h-7 flex items-center justify-center pointer-events-none">
+            ${dev.symbolSvg}
+          </div>
+          <!-- Device Short Label -->
+          <span class="text-[10px] font-bold ${isSelected ? 'text-blue-800' : 'text-slate-700'} truncate max-w-[75px] mt-1">${dev.name}</span>
+        `;
+
+        container.appendChild(item);
+      });
+    }
+
+    function showDeviceTooltip(e, devId) {
+      const dev = sidebarDevices.find(d => d.id === devId);
+      if (!dev) return;
+      const tooltip = document.getElementById('device-global-tooltip');
+      if (!tooltip) return;
+
+      document.getElementById('tooltip-ansi').textContent = dev.ansi;
+      document.getElementById('tooltip-name').textContent = dev.fullName || dev.name;
+      document.getElementById('tooltip-mfg').textContent = dev.mfg;
+      document.getElementById('tooltip-rating').textContent = dev.rating;
+
+      const rect = e.currentTarget.getBoundingClientRect();
+      tooltip.style.left = (rect.right + 10) + 'px';
+      tooltip.style.top = Math.max(10, rect.top - 15) + 'px';
+      tooltip.classList.remove('hidden');
+    }
+
+    function hideDeviceTooltip() {
+      const tooltip = document.getElementById('device-global-tooltip');
+      if (tooltip) tooltip.classList.add('hidden');
+    }
+
+    function selectSidebarDevice(id) {
+      selectedSidebarDeviceId = id;
+      renderSidebarDeviceGrid();
+      const dev = sidebarDevices.find(d => d.id === id);
+      if (dev) {
+        showNotification(`Pieza seleccionada: ${dev.fullName || dev.name}`);
+      }
+    }
+
+    function confirmLibraryDeviceSelection(alsoPlaceOnCanvas = false) {
+      const dev = libraryDevices.find(d => d.id === selectedLibraryDeviceId);
+      if (!dev) return;
+
+      // Prevent duplicate addition
+      const alreadyExists = sidebarDevices.some(d => d.baseId === dev.id || d.id === dev.id);
+      if (alreadyExists) {
+        showNotification(`El dispositivo ya se encuentra en la lista: ${dev.name}`);
+        return;
+      }
+
+      const parts = dev.name.split(' ');
+      const newDev = {
+        id: dev.id,
+        baseId: dev.id,
+        name: parts[0] + ' ' + (parts[1] || ''),
+        fullName: dev.name,
+        mfg: dev.mfg,
+        category: dev.category,
+        ansi: dev.ansi,
+        rating: dev.rating,
+        symbolSvg: dev.symbolSvg
+      };
+
+      sidebarDevices.push(newDev);
+      selectedSidebarDeviceId = dev.id;
+      renderSidebarDeviceGrid();
+      updateLibraryPreview(selectedLibraryDeviceId);
+      closeDeviceLibraryModal();
+      showNotification(`Pieza añadida a Device List: ${dev.name}`);
+
+      if (alsoPlaceOnCanvas) {
+        // Automatically place in center of engineering sheet
+        const sheet = document.getElementById('engineering-sheet-boundary');
+        const centerX = sheet ? Math.round((sheet.offsetWidth - 110) / 2) : 350;
+        const centerY = sheet ? Math.round((sheet.offsetHeight - 76) / 2) : 220;
+        placeDeviceOnCanvas(newDev, centerX, centerY);
+      }
+    }
+
+    function clearSelectedDevice() {
+      if (!selectedSidebarDeviceId) {
+        showNotification("Ninguna pieza seleccionada para eliminar.");
+        return;
+      }
+      const idx = sidebarDevices.findIndex(d => d.id === selectedSidebarDeviceId);
+      if (idx !== -1) {
+        const removed = sidebarDevices.splice(idx, 1)[0];
+        selectedSidebarDeviceId = sidebarDevices.length > 0 ? sidebarDevices[Math.max(0, idx - 1)].id : null;
+        hideDeviceTooltip();
+        renderSidebarDeviceGrid();
+        updateLibraryPreview(selectedLibraryDeviceId);
+        showNotification(`Pieza eliminada: ${removed.name}`);
+      }
+    }
+
+    // ========================================================
+    // Drag & Drop to Workspace CAD Canvas Controller
+    // ========================================================
+    function handleSidebarDragStart(e, devId) {
+      draggedSidebarDeviceId = devId;
+      const dev = sidebarDevices.find(d => d.id === devId);
+      if (dev && e.dataTransfer) {
+        e.dataTransfer.setData('text/plain', devId);
+        e.dataTransfer.effectAllowed = 'copyMove';
+        updateDragGhostContent(dev);
+      }
+    }
+
+    function handleSidebarDragEnd(e) {
+      draggedSidebarDeviceId = null;
+      hideDragGhost();
+    }
+
+    function updateDragGhostContent(dev) {
+      const ghost = document.getElementById('canvas-drag-ghost');
+      if (!ghost) return;
+      const ansiCode = (dev.ansi || '').split(' ')[0] || 'ANSI';
+      const symbolSvg = getCadSymbolSvgWithTerminals(dev.category, ansiCode, dev.name);
+      ghost.innerHTML = `
+        <div class="w-28 bg-white/90 backdrop-blur-xs border-2 border-dashed border-blue-500 rounded-lg p-2 shadow-2xl flex flex-col items-center pointer-events-none opacity-70">
+          <div class="w-full h-12 flex items-center justify-center">
+            ${symbolSvg}
+          </div>
+          <div class="text-[9px] font-bold text-blue-700 truncate max-w-[100px] mt-1">${dev.name}</div>
+          <div class="text-[8px] font-mono text-slate-500">${dev.ansi}</div>
+        </div>
+      `;
+    }
+
+    function showDragGhost(clientX, clientY) {
+      const ghost = document.getElementById('canvas-drag-ghost');
+      if (ghost) {
+        ghost.style.left = `${clientX - 56}px`;
+        ghost.style.top = `${clientY - 42}px`;
+        ghost.classList.remove('hidden');
+      }
+    }
+
+    function hideDragGhost() {
+      const ghost = document.getElementById('canvas-drag-ghost');
+      if (ghost) {
+        ghost.classList.add('hidden');
+      }
+    }
+
+    function handleCanvasDragOver(e) {
+      e.preventDefault();
+      if (e.dataTransfer) {
+        e.dataTransfer.dropEffect = 'copy';
+      }
+      if (draggedSidebarDeviceId) {
+        showDragGhost(e.clientX, e.clientY);
+      }
+    }
+
+    function handleCanvasDragLeave(e) {
+      const viewport = document.getElementById('cad-canvas-viewport');
+      if (viewport && !viewport.contains(e.relatedTarget)) {
+        hideDragGhost();
+      }
+    }
+
+    function handleCanvasDrop(e) {
+      e.preventDefault();
+      hideDragGhost();
+
+      const devId = draggedSidebarDeviceId || (e.dataTransfer ? e.dataTransfer.getData('text/plain') : null);
+      if (!devId) return;
+
+      const dev = sidebarDevices.find(d => d.id === devId);
+      if (!dev) return;
+
+      const sheet = document.getElementById('engineering-sheet-boundary');
+      if (!sheet) return;
+
+      const rect = sheet.getBoundingClientRect();
+      const scale = currentZoom / 100;
+
+      // Coordinate transformation accounting for viewport scroll and zoom scale
+      const sheetX = (e.clientX - rect.left) / scale;
+      const sheetY = (e.clientY - rect.top) / scale;
+
+      const itemWidth = 110;
+      const itemHeight = 76;
+      const posX = Math.max(5, Math.min(sheet.offsetWidth - itemWidth - 5, Math.round(sheetX - itemWidth / 2)));
+      const posY = Math.max(5, Math.min(sheet.offsetHeight - itemHeight - 5, Math.round(sheetY - itemHeight / 2)));
+
+      placeDeviceOnCanvas(dev, posX, posY);
+    }
+
+    // ========================================================
+    // Placed CAD Components in Workspace Management
+    // ========================================================
+    let placedCanvasElements = [];
+    let selectedPlacedInstanceId = null;
+
+    function placeDeviceOnCanvas(dev, x, y) {
+      const baseClean = (dev.baseId || dev.id).replace('DEV-', '').replace(/[^A-Za-z0-9]/g, '');
+      const count = placedCanvasElements.filter(el => el.baseId === (dev.baseId || dev.id)).length + 1;
+      const instanceId = `INST-${baseClean}-${count.toString().padStart(2, '0')}`;
+
+      const itemWidth = 110;
+      const itemHeight = 76;
+
+      const placedEl = {
+        instanceId,
+        baseId: dev.baseId || dev.id,
+        name: dev.name,
+        fullName: dev.fullName,
+        category: dev.category,
+        ansi: dev.ansi,
+        rating: dev.rating,
+        mfg: dev.mfg,
+        x,
+        y,
+        width: itemWidth,
+        height: itemHeight
+      };
+
+      placedCanvasElements.push(placedEl);
+      selectedPlacedInstanceId = instanceId;
+      renderPlacedCanvasElements();
+      showNotification(`Componente fijado en workspace: ${instanceId}`);
+    }
+
+    function renderPlacedCanvasElements() {
+      const container = document.getElementById('placed-cad-elements-container');
+      if (!container) return;
+
+      container.innerHTML = '';
+      placedCanvasElements.forEach(item => {
+        const isSelected = item.instanceId === selectedPlacedInstanceId;
+        const ansiCode = (item.ansi || '').split(' ')[0] || 'ANSI';
+        const symbolSvg = getCadSymbolSvgWithTerminals(item.category, ansiCode, item.name);
+
+        const el = document.createElement('div');
+        el.id = `placed-el-${item.instanceId}`;
+        el.className = `absolute cursor-move select-none transition-shadow rounded-lg p-1 flex flex-col items-center justify-between ${
+          isSelected 
+            ? 'ring-2 ring-blue-600 bg-white/95 shadow-lg border border-blue-400 z-20' 
+            : 'hover:ring-1 hover:ring-blue-300 bg-white/85 hover:bg-white/95 shadow-xs border border-slate-300 z-10'
+        }`;
+        el.style.left = `${item.x}px`;
+        el.style.top = `${item.y}px`;
+        el.style.width = `${item.width}px`;
+        el.style.height = `${item.height}px`;
+
+        el.onmousedown = (e) => startMovingPlacedElement(e, item.instanceId);
+
+        el.innerHTML = `
+          <!-- Instance Tag Header -->
+          <div class="w-full flex items-center justify-between pointer-events-none px-1">
+            <span class="text-[8px] font-mono font-bold ${isSelected ? 'text-blue-700' : 'text-slate-500'} truncate">${item.instanceId}</span>
+            <span class="text-[7.5px] px-1 rounded bg-slate-100 text-slate-600 font-mono font-bold">${ansiCode}</span>
+          </div>
+
+          <!-- CAD Vector Symbol with Numbered Terminals -->
+          <div class="w-full h-11 flex items-center justify-center pointer-events-none">
+            ${symbolSvg}
+          </div>
+
+          <!-- Component Label Footer -->
+          <div class="w-full text-center pointer-events-none px-1">
+            <span class="text-[8.5px] font-bold text-slate-800 truncate block leading-tight">${item.name}</span>
+          </div>
+        `;
+
+        container.appendChild(el);
+      });
+    }
+
+    function startMovingPlacedElement(e, instanceId) {
+      e.stopPropagation();
+      selectedPlacedInstanceId = instanceId;
+      const element = placedCanvasElements.find(el => el.instanceId === instanceId);
+      if (!element) return;
+
+      renderPlacedCanvasElements();
+
+      const startMouseX = e.clientX;
+      const startMouseY = e.clientY;
+      const startElemX = element.x;
+      const startElemY = element.y;
+
+      const onMouseMove = (moveEvent) => {
+        const scale = currentZoom / 100;
+        const dx = (moveEvent.clientX - startMouseX) / scale;
+        const dy = (moveEvent.clientY - startMouseY) / scale;
+
+        const sheet = document.getElementById('engineering-sheet-boundary');
+        const maxX = sheet ? sheet.offsetWidth - element.width - 5 : 700;
+        const maxY = sheet ? sheet.offsetHeight - element.height - 5 : 450;
+
+        element.x = Math.max(5, Math.min(maxX, Math.round(startElemX + dx)));
+        element.y = Math.max(5, Math.min(maxY, Math.round(startElemY + dy)));
+
+        const domEl = document.getElementById(`placed-el-${instanceId}`);
+        if (domEl) {
+          domEl.style.left = `${element.x}px`;
+          domEl.style.top = `${element.y}px`;
+        }
+      };
+
+      const onMouseUp = () => {
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseup', onMouseUp);
+        renderPlacedCanvasElements();
+      };
+
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
+    }
+
+    function showNotification(msg) {
+      const toast = document.getElementById('toast-notification');
+      const toastMsg = document.getElementById('toast-notification-message');
+      if (toast && toastMsg) {
+        toastMsg.textContent = msg;
+        toast.classList.remove('translate-y-12', 'opacity-0', 'pointer-events-none');
+        toast.classList.add('translate-y-0', 'opacity-100');
+        setTimeout(() => {
+          toast.classList.add('translate-y-12', 'opacity-0', 'pointer-events-none');
+          toast.classList.remove('translate-y-0', 'opacity-100');
+        }, 2800);
+      }
+    }
+
+    // Attach listeners to modal inputs once DOM is ready
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('new-project-form');
+      if (form) {
+        form.addEventListener('input', validateNewProjectForm);
+        form.addEventListener('change', validateNewProjectForm);
+      }
+      renderLibraryDeviceList();
+      updateLibraryPreview(selectedLibraryDeviceId);
+      renderSidebarDeviceGrid();
+
+      // Mouse Wheel Navigation: Ctrl+wheel for vertical scroll, Shift+wheel for horizontal scroll, regular wheel for zoom
+      const canvasViewport = document.getElementById('cad-canvas-viewport');
+      if (canvasViewport) {
+        canvasViewport.addEventListener('wheel', (e) => {
+          e.preventDefault();
+          if (e.shiftKey || (e.ctrlKey && e.shiftKey) || (e.ctrlKey && e.altKey)) {
+            // Horizontal scroll
+            canvasViewport.scrollLeft += (e.deltaY !== 0 ? e.deltaY : e.deltaX) * 1.5;
+          } else if (e.ctrlKey) {
+            // Vertical scroll with Ctrl + wheel
+            canvasViewport.scrollTop += e.deltaY * 1.5;
+          } else {
+            // Regular wheel: smooth zoom
+            if (e.deltaY < 0) {
+              zoomIn();
+            } else {
+              zoomOut();
+            }
+          }
+        }, { passive: false });
+      }
+    });
+
+    // Close on ESC key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeNewProjectModal();
+        dismissCloseModal();
+        closeDeviceLibraryModal();
+      }
+    });
+  </script>
+
+  <!-- Global Floating Tooltip for Sidebar Devices (Positioned fixed to prevent overflow clipping) -->
+  <div id="device-global-tooltip" class="fixed hidden z-50 pointer-events-none transition-opacity duration-150">
+    <div class="flex flex-col w-56 p-2.5 bg-slate-900 text-white text-[11px] rounded-lg shadow-2xl border border-slate-700">
+      <div class="font-bold text-blue-300 text-[10px] uppercase border-b border-slate-700 pb-1 mb-1.5 flex items-center justify-between">
+        <span id="tooltip-ansi">ANSI 50/51</span>
+        <span class="text-emerald-400 font-mono text-[9px]">Calibrated</span>
+      </div>
+      <div id="tooltip-name" class="font-bold text-slate-100 text-xs mb-0.5 leading-tight">SEL-751 Relay</div>
+      <div id="tooltip-mfg" class="text-[10px] text-slate-300">Schweitzer Eng. Lab.</div>
+      <div class="mt-1 pt-1 border-t border-slate-800 text-[10px] text-slate-400 flex justify-between font-mono">
+        <span>Rating:</span>
+        <span id="tooltip-rating" class="text-slate-200 font-semibold">5 A Nominal</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Translucent Drag Ghost Element for Canvas Drag & Drop -->
+  <div id="canvas-drag-ghost" class="fixed hidden z-50 pointer-events-none transition-transform duration-75"></div>
+
+</body>
+</html>

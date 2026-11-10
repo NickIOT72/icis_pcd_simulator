@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Device Library Modal - Protection & Control Designer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Custom light scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f8fafc; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+<body class="bg-slate-900/40 backdrop-blur-sm h-screen w-screen flex items-center justify-center p-4 font-sans select-none antialiased">
+
+  <!-- ======================================================== -->
+  <!-- MODAL WINDOW CONTAINER (Light Contrast Design)           -->
+  <!-- ======================================================== -->
+  <div class="bg-white border border-slate-300 rounded-2xl shadow-2xl w-full max-w-5xl overflow-hidden flex flex-col max-h-[92vh]">
+    
+    <!-- Modal Header -->
+    <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-emerald-500 flex items-center justify-center shadow-sm text-white">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-sm font-bold text-slate-900 tracking-wide">Device & Equipment Library</h2>
+          <p class="text-[11px] text-slate-500 font-medium">Select and insert calibrated electrical devices into your Single Line Diagram</p>
+        </div>
+      </div>
+
+      <!-- Close Button -->
+      <button onclick="window.parent && window.parent.postMessage({action:'closeDeviceModal'}, '*')" class="w-7 h-7 rounded-lg hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors text-sm font-bold" title="Close Modal">
+        ✕
+      </button>
+    </div>
+
+    <!-- Search & Category Filters Bar -->
+    <div class="px-6 py-3 bg-white border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 shrink-0">
+      
+      <!-- Search Input -->
+      <div class="relative w-80">
+        <svg class="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <input id="device-search-input" oninput="filterDevices()" type="text" placeholder="Search devices by model, ANSI code, rating..." class="w-full bg-slate-50 border border-slate-300 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 font-medium">
+      </div>
+
+      <!-- Category Filter Dropdown List -->
+      <div class="flex items-center gap-2 text-xs">
+        <label for="device-category-filter" class="font-semibold text-slate-600 text-[11px]">Category Filter:</label>
+        <select id="device-category-filter" onchange="filterDevices()" class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600">
+          <option value="ALL">All Categories (4,120)</option>
+          <option value="RELAY">Protection Relays (ANSI 50/51/87/21)</option>
+          <option value="BREAKER">Circuit Breakers (ANSI 52)</option>
+          <option value="CT_VT">Instrument Transformers (CT / VT)</option>
+          <option value="XFMR">Power Transformers</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Modal Body: Split Layout (Device Catalog List + Specs Preview) -->
+    <div class="flex flex-1 overflow-hidden min-h-[460px]">
+      
+      <!-- Left: Device Selection List (Scrollable) -->
+      <div id="device-list-container" class="flex-1 overflow-y-auto p-4 space-y-2 bg-slate-50/70 border-r border-slate-200">
+        <!-- Rendered via JavaScript or fallback list items -->
+      </div>
+
+      <!-- Right: Detailed Specifications Preview Panel -->
+      <aside class="w-80 bg-white p-5 flex flex-col justify-between shrink-0 overflow-y-auto">
+        <div class="space-y-4">
+          <div class="pb-3 border-b border-slate-200">
+            <span id="preview-badge" class="text-[10px] uppercase font-bold text-blue-700 tracking-wider">Device Profile</span>
+            <h4 id="preview-title" class="text-sm font-bold text-slate-900 mt-0.5">SEL-751 Relay</h4>
+            <p id="preview-desc" class="text-[11px] text-slate-500">Digital Microprocessor Feeder Protection</p>
+          </div>
+
+          <!-- Schematic Symbol Preview -->
+          <div>
+            <span class="text-[11px] font-semibold text-slate-700 mb-1.5 block">CAD Canvas Symbol</span>
+            <div id="preview-symbol-box" class="h-24 w-full bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center p-2">
+              <svg class="w-full h-full text-blue-600" viewBox="0 0 100 40">
+                <circle cx="50" cy="20" r="14" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+                <text x="50" y="24" text-anchor="middle" fill="#1e40af" font-size="9" font-weight="bold" font-family="monospace">50/51</text>
+                <line x1="20" y1="20" x2="36" y2="20" stroke="#2563eb" stroke-width="2"/>
+                <line x1="64" y1="20" x2="80" y2="20" stroke="#2563eb" stroke-width="2"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Settings & Compatibility Check -->
+          <div class="space-y-2 text-[11px]">
+            <span class="font-semibold text-slate-700 block">Engineering Attributes</span>
+            <div id="preview-attributes" class="space-y-1.5 text-slate-600">
+              <div class="flex justify-between pb-1 border-b border-slate-100">
+                <span class="text-slate-400">Manufacturer:</span>
+                <span id="attr-mfg" class="font-semibold text-slate-800">SEL Inc.</span>
+              </div>
+              <div class="flex justify-between pb-1 border-b border-slate-100">
+                <span class="text-slate-400">Library Source:</span>
+                <span id="attr-source" class="font-semibold text-emerald-700">PostgreSQL Verified</span>
+              </div>
+              <div class="flex justify-between pb-1 border-b border-slate-100">
+                <span class="text-slate-400">Standard / Rating:</span>
+                <span id="attr-standard" class="font-semibold text-slate-800">IEEE C37.112</span>
+              </div>
+              <div class="flex justify-between pb-1 border-b border-slate-100">
+                <span class="text-slate-400">Primary Rating:</span>
+                <span id="attr-rating" class="font-semibold text-slate-800">5 A Nominal</span>
+              </div>
+              <div class="flex justify-between pb-1 border-b border-slate-100">
+                <span class="text-slate-400">ANSI Function:</span>
+                <span id="attr-ansi" class="font-semibold text-blue-700 font-mono">50/51/67</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-slate-200">
+          <span id="preview-device-id" class="text-[10px] text-slate-400 block mb-2 font-mono">ID: DEV-SEL-751-ANSI</span>
+          <button id="btn-insert-device" onclick="confirmDeviceSelection()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg text-xs shadow-sm shadow-blue-200 transition-colors flex items-center justify-center gap-1.5">
+            <span>Insert Device to Canvas</span>
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+            </svg>
+          </button>
+        </div>
+      </aside>
+
+    </div>
+
+    <!-- Modal Footer Actions -->
+    <div class="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between shrink-0">
+      <div class="text-[11px] text-slate-500 font-medium">
+        Catalog: <span class="font-bold text-slate-700">4,120 calibrated components</span> available in local database
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-lg bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-300 transition-colors shadow-2xs">
+          Cancel
+        </button>
+        <button id="btn-select-device-modal" type="button" onclick="confirmDeviceSelection()" class="px-5 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white font-bold text-xs shadow-md shadow-blue-200 transition-all flex items-center gap-1.5">
+          <span>Select Device</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Comprehensive Device Dataset
+    const devicesData = [
+      {
+        id: "DEV-SEL-751",
+        name: "SEL-751 Feeder Protection Relay",
+        mfg: "Schweitzer Engineering Laboratories",
+        category: "RELAY",
+        ansi: "ANSI 50/51/67",
+        icon: "🛡️",
+        standard: "IEEE C37.112",
+        rating: "5 A Nominal (TOC + IOC)",
+        badgeBg: "bg-blue-100 text-blue-800",
+        desc: "Digital Microprocessor Feeder Protection & Arc-Flash Detection",
+        symbolSvg: `<svg class="w-full h-full text-blue-600" viewBox="0 0 100 40"><circle cx="50" cy="20" r="14" fill="#ffffff" stroke="#2563eb" stroke-width="2"/><text x="50" y="24" text-anchor="middle" fill="#1e40af" font-size="9" font-weight="bold" font-family="monospace">50/51</text><line x1="20" y1="20" x2="36" y2="20" stroke="#2563eb" stroke-width="2"/><line x1="64" y1="20" x2="80" y2="20" stroke="#2563eb" stroke-width="2"/></svg>`,
+        specs: ["IEEE C37.112 Curves", "Rated: 5A Nominal", "ANSI 50/51/67/50N", "Calibrated Model"]
+      },
+      {
+        id: "DEV-SEL-487E",
+        name: "SEL-487E Transformer Protection Relay",
+        mfg: "Schweitzer Engineering Laboratories",
+        category: "RELAY",
+        ansi: "ANSI 87T / 50 / 51",
+        icon: "🔄",
+        standard: "IEEE C37.91",
+        rating: "Multi-winding Differential",
+        badgeBg: "bg-amber-100 text-amber-800",
+        desc: "Advanced Dual-Slope Current Differential with Overfluxing & Restricted Earth Fault",
+        symbolSvg: `<svg class="w-full h-full text-amber-600" viewBox="0 0 100 40"><circle cx="42" cy="20" r="12" fill="#ffffff" stroke="#d97706" stroke-width="2"/><circle cx="58" cy="20" r="12" fill="#ffffff" stroke="#d97706" stroke-width="2"/><text x="50" y="23" text-anchor="middle" fill="#b45309" font-size="8" font-weight="bold" font-family="monospace">87T</text><line x1="15" y1="20" x2="30" y2="20" stroke="#d97706" stroke-width="2"/><line x1="70" y1="20" x2="85" y2="20" stroke="#d97706" stroke-width="2"/></svg>`,
+        specs: ["Harmonic Restraint (2nd/5th)", "Dual Slope Characteristic", "Through-fault Monitor", "Calibrated Model"]
+      },
+      {
+        id: "DEV-ABB-RET670",
+        name: "ABB Relion RET670 Line & Feeder IED",
+        mfg: "ABB Power Grids / Hitachi Energy",
+        category: "RELAY",
+        ansi: "ANSI 21 / 87L",
+        icon: "🛡️",
+        standard: "IEC 60255 / IEEE",
+        rating: "Sub-cycle Transmission Protection",
+        badgeBg: "bg-blue-100 text-blue-800",
+        desc: "Distance Quadrilateral & Mho Protection with Teleprotection Interface",
+        symbolSvg: `<svg class="w-full h-full text-blue-600" viewBox="0 0 100 40"><polygon points="50,8 65,32 35,32" fill="#ffffff" stroke="#2563eb" stroke-width="2"/><text x="50" y="27" text-anchor="middle" fill="#1e40af" font-size="8" font-weight="bold" font-family="monospace">21</text><line x1="15" y1="20" x2="35" y2="20" stroke="#2563eb" stroke-width="2"/><line x1="65" y1="20" x2="85" y2="20" stroke="#2563eb" stroke-width="2"/></svg>`,
+        specs: ["5 Zone Distance", "Quadrilateral/Mho Reach", "IEC 61850 GOOSE", "Calibrated Model"]
+      },
+      {
+        id: "DEV-SIEMENS-7SJ85",
+        name: "Siemens SIPROTEC 5 7SJ85 Overcurrent Relay",
+        mfg: "Siemens AG",
+        category: "RELAY",
+        ansi: "ANSI 50/51/67N",
+        icon: "🛡️",
+        standard: "IEC 60255-151",
+        rating: "Universal MV/HV Feeder Control",
+        badgeBg: "bg-blue-100 text-blue-800",
+        desc: "Modular Protection & Automation Unit with Synchrocheck and Power Quality",
+        symbolSvg: `<svg class="w-full h-full text-blue-600" viewBox="0 0 100 40"><circle cx="50" cy="20" r="14" fill="#ffffff" stroke="#2563eb" stroke-width="2"/><text x="50" y="24" text-anchor="middle" fill="#1e40af" font-size="8" font-weight="bold" font-family="monospace">67N</text><line x1="20" y1="20" x2="36" y2="20" stroke="#2563eb" stroke-width="2"/><line x1="64" y1="20" x2="80" y2="20" stroke="#2563eb" stroke-width="2"/></svg>`,
+        specs: ["IEC Normal/Very/Ext Inv.", "Synchrocheck (25)", "Point-on-wave Switching", "Calibrated Model"]
+      },
+      {
+        id: "DEV-SCHNEIDER-P3",
+        name: "Schneider Easergy P3 Feeder Relay",
+        mfg: "Schneider Electric",
+        category: "RELAY",
+        ansi: "ANSI 50/51/49",
+        icon: "🛡️",
+        standard: "IEC 60255",
+        rating: "1A / 5A Dual Input",
+        badgeBg: "bg-emerald-100 text-emerald-800",
+        desc: "Directional & Non-Directional Overcurrent Relay with Thermal Overload",
+        symbolSvg: `<svg class="w-full h-full text-emerald-600" viewBox="0 0 100 40"><circle cx="50" cy="20" r="14" fill="#ffffff" stroke="#16a34a" stroke-width="2"/><text x="50" y="24" text-anchor="middle" fill="#15803d" font-size="8" font-weight="bold" font-family="monospace">50/51</text><line x1="20" y1="20" x2="36" y2="20" stroke="#16a34a" stroke-width="2"/><line x1="64" y1="20" x2="80" y2="20" stroke="#16a34a" stroke-width="2"/></svg>`,
+        specs: ["Thermal Image ANSI 49", "Directional 67", "Color HMI Display", "Calibrated Model"]
+      },
+      {
+        id: "DEV-ABB-VD4",
+        name: "ABB VD4 Medium Voltage Vacuum Breaker",
+        mfg: "ABB Electrification",
+        category: "BREAKER",
+        ansi: "ANSI 52 Breaker",
+        icon: "⚡",
+        standard: "IEC 62271-100 / IEEE C37.06",
+        rating: "17.5 kV Max • 31.5 kA Sym",
+        badgeBg: "bg-emerald-100 text-emerald-800",
+        desc: "Stored-energy mechanism vacuum circuit breaker for indoor switchgear",
+        symbolSvg: `<svg class="w-full h-full text-blue-600" viewBox="0 0 100 40"><rect x="36" y="8" width="28" height="24" fill="#ffffff" stroke="#2563eb" stroke-width="2.5" rx="3"/><text x="50" y="24" text-anchor="middle" fill="#1e40af" font-size="10" font-weight="bold">52</text><line x1="15" y1="20" x2="36" y2="20" stroke="#2563eb" stroke-width="2.5"/><line x1="64" y1="20" x2="85" y2="20" stroke="#2563eb" stroke-width="2.5"/></svg>`,
+        specs: ["Rated Voltage: 17.5 kV", "Interrupt: 31.5 kA (Sym)", "Operating: 45ms (3 Cyc)", "Verified Rating"]
+      },
+      {
+        id: "DEV-SIEMENS-3AE",
+        name: "Siemens SION 3AE Vacuum Circuit Breaker",
+        mfg: "Siemens AG",
+        category: "BREAKER",
+        ansi: "ANSI 52 Breaker",
+        icon: "⚡",
+        standard: "IEC 62271-100",
+        rating: "24 kV • 25 kA • 1250 A",
+        badgeBg: "bg-emerald-100 text-emerald-800",
+        desc: "Compact vacuum circuit breaker with maintenance-free interrupters",
+        symbolSvg: `<svg class="w-full h-full text-blue-600" viewBox="0 0 100 40"><rect x="36" y="8" width="28" height="24" fill="#ffffff" stroke="#2563eb" stroke-width="2.5" rx="3"/><text x="50" y="24" text-anchor="middle" fill="#1e40af" font-size="10" font-weight="bold">52</text><line x1="15" y1="20" x2="36" y2="20" stroke="#2563eb" stroke-width="2.5"/><line x1="64" y1="20" x2="85" y2="20" stroke="#2563eb" stroke-width="2.5"/></svg>`,
+        specs: ["Rated Voltage: 24 kV", "Rated Current: 1250 A", "Interrupt: 25 kA Sym", "Verified Rating"]
+      },
+      {
+        id: "DEV-GE-C800",
+        name: "Substation CT 1200:5A Class C800",
+        mfg: "GE Grid Solutions",
+        category: "CT_VT",
+        ansi: "Instrument CT",
+        icon: "🔄",
+        standard: "IEEE C57.13",
+        rating: "Ratio 1200:5 A • Class C800",
+        badgeBg: "bg-amber-100 text-amber-800",
+        desc: "Bushing type relaying current transformer with non-linear saturation curve",
+        symbolSvg: `<svg class="w-full h-full text-amber-600" viewBox="0 0 100 40"><circle cx="50" cy="20" r="12" fill="#ffffff" stroke="#d97706" stroke-width="2"/><text x="50" y="24" text-anchor="middle" fill="#b45309" font-size="8" font-weight="bold" font-family="monospace">CT</text><line x1="15" y1="20" x2="38" y2="20" stroke="#d97706" stroke-width="2"/><line x1="62" y1="20" x2="85" y2="20" stroke="#d97706" stroke-width="2"/></svg>`,
+        specs: ["Ratio: 1200:5 A", "Relaying Class: IEEE C800", "Saturation: Vs=800V", "Saturation Model"]
+      },
+      {
+        id: "DEV-ABB-TPU",
+        name: "ABB TPU 60.11 Indoor Voltage Transformer",
+        mfg: "ABB Electrification",
+        category: "CT_VT",
+        ansi: "Instrument VT",
+        icon: "🔄",
+        standard: "IEC 61869-3 / IEEE C57.13",
+        rating: "13800V / 115V • Class 0.2",
+        badgeBg: "bg-amber-100 text-amber-800",
+        desc: "Cast resin medium voltage indoor potential transformer with thermal burden rating",
+        symbolSvg: `<svg class="w-full h-full text-amber-600" viewBox="0 0 100 40"><circle cx="44" cy="20" r="10" fill="#ffffff" stroke="#d97706" stroke-width="2"/><circle cx="56" cy="20" r="10" fill="#ffffff" stroke="#d97706" stroke-width="2"/><line x1="15" y1="20" x2="34" y2="20" stroke="#d97706" stroke-width="2"/><line x1="66" y1="20" x2="85" y2="20" stroke="#d97706" stroke-width="2"/></svg>`,
+        specs: ["Ratio: 13.8kV / 115V", "Accuracy: Cl. 0.2 / 3P", "Thermal Burden: 500VA", "Calibrated Model"]
+      },
+      {
+        id: "DEV-SIEMENS-XFMR-40MVA",
+        name: "40 MVA ONAN/ONAF Power Transformer",
+        mfg: "Siemens Energy",
+        category: "XFMR",
+        ansi: "Two-Winding Power XFMR",
+        icon: "⚙️",
+        standard: "IEEE C57.12.00",
+        rating: "115 / 13.8 kV • Dyn11",
+        badgeBg: "bg-purple-100 text-purple-800",
+        desc: "Three-phase step-down substation transformer with on-load tap changer (OLTC)",
+        symbolSvg: `<svg class="w-full h-full text-purple-600" viewBox="0 0 100 40"><circle cx="42" cy="20" r="12" fill="#ffffff" stroke="#9333ea" stroke-width="2"/><circle cx="58" cy="20" r="12" fill="#ffffff" stroke="#9333ea" stroke-width="2"/><line x1="15" y1="20" x2="30" y2="20" stroke="#9333ea" stroke-width="2"/><line x1="70" y1="20" x2="85" y2="20" stroke="#9333ea" stroke-width="2"/></svg>`,
+        specs: ["Voltage: 115 / 13.8 kV", "%Z: 8.5% on 40MVA", "Vector Group: Dyn11", "SPICE Model Ready"]
+      }
+    ];
+
+    let selectedDeviceId = "DEV-SEL-751";
+
+    function renderDeviceList() {
+      const container = document.getElementById('device-list-container');
+      const search = (document.getElementById('device-search-input').value || '').toLowerCase();
+      const cat = document.getElementById('device-category-filter').value;
+
+      const filtered = devicesData.filter(d => {
+        const matchesCat = cat === 'ALL' || d.category === cat;
+        const matchesSearch = d.name.toLowerCase().includes(search) || 
+                              d.mfg.toLowerCase().includes(search) || 
+                              d.ansi.toLowerCase().includes(search) ||
+                              d.id.toLowerCase().includes(search);
+        return matchesCat && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="h-48 flex flex-col items-center justify-center text-slate-400 text-xs">
+            <svg class="w-8 h-8 mb-2 stroke-current" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span>No devices match the criteria.</span>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = '';
+      filtered.forEach(dev => {
+        const isSelected = dev.id === selectedDeviceId;
+        const itemEl = document.createElement('div');
+        itemEl.onclick = () => selectDevice(dev.id);
+        itemEl.ondblclick = () => { selectDevice(dev.id); confirmDeviceSelection(); };
+        
+        itemEl.className = isSelected
+          ? "bg-blue-50/70 border-2 border-blue-600 rounded-xl p-3 shadow-xs cursor-pointer transition-all flex items-center justify-between group"
+          : "bg-white border border-slate-200 hover:border-blue-400 hover:bg-slate-50/60 rounded-xl p-3 shadow-2xs cursor-pointer transition-all flex items-center justify-between group";
+
+        itemEl.innerHTML = `
+          <div class="flex items-center gap-3 min-w-0 flex-1 mr-3">
+            <div class="w-9 h-9 rounded-lg ${isSelected ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 group-hover:bg-blue-50 group-hover:text-blue-700'} flex items-center justify-center text-base shrink-0 font-bold transition-colors">
+              ${dev.icon}
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2">
+                <h4 class="text-xs font-bold text-slate-900 group-hover:text-blue-600 truncate">${dev.name}</h4>
+                <span class="px-1.5 py-0.2 rounded text-[9px] ${dev.badgeBg} font-mono font-bold shrink-0">${dev.ansi}</span>
+              </div>
+              <div class="text-[10px] text-slate-500 truncate mt-0.5 flex items-center gap-2">
+                <span class="font-medium">${dev.mfg}</span>
+                <span>•</span>
+                <span class="text-slate-600 font-mono">${dev.rating}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 shrink-0 text-right">
+            <div class="hidden sm:block text-[10px]">
+              <span class="text-emerald-700 font-bold flex items-center gap-1">● Calibrated</span>
+              <span class="text-slate-400 font-mono">${dev.standard}</span>
+            </div>
+            <div class="w-5 flex justify-center">
+              ${isSelected 
+                ? '<div class="w-4 h-4 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold">✓</div>' 
+                : '<div class="w-4 h-4 rounded-full border border-slate-300 group-hover:border-blue-400"></div>'}
+            </div>
+          </div>
+        `;
+
+        container.appendChild(itemEl);
+      });
+    }
+
+    function selectDevice(id) {
+      selectedDeviceId = id;
+      renderDeviceList();
+      updatePreview(id);
+    }
+
+    function updatePreview(id) {
+      const dev = devicesData.find(d => d.id === id);
+      if (!dev) return;
+
+      document.getElementById('preview-title').textContent = dev.name;
+      document.getElementById('preview-desc').textContent = dev.desc;
+      document.getElementById('preview-badge').textContent = dev.category + " Specification";
+      document.getElementById('preview-symbol-box').innerHTML = dev.symbolSvg;
+      document.getElementById('preview-device-id').textContent = "ID: " + dev.id;
+
+      document.getElementById('attr-mfg').textContent = dev.mfg;
+      document.getElementById('attr-standard').textContent = dev.standard;
+      document.getElementById('attr-rating').textContent = dev.rating;
+      document.getElementById('attr-ansi').textContent = dev.ansi;
+    }
+
+    function filterDevices() {
+      renderDeviceList();
+    }
+
+    function confirmDeviceSelection() {
+      const dev = devicesData.find(d => d.id === selectedDeviceId);
+      if (!dev) return;
+      
+      // If embedded or opened via window/iframe
+      if (window.opener && !window.opener.closed) {
+        window.opener.postMessage({ action: 'deviceSelected', deviceName: dev.name, deviceId: dev.id }, '*');
+        window.close();
+      } else if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ action: 'deviceSelected', deviceName: dev.name, deviceId: dev.id }, '*');
+      } else {
+        alert("Device selected: " + dev.name);
+      }
+    }
+
+    function closeModal() {
+      if (window.opener && !window.opener.closed) {
+        window.close();
+      } else if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ action: 'closeDeviceModal' }, '*');
+      }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      selectDevice(selectedDeviceId);
+    });
+  </script>
+</body>
+</html>

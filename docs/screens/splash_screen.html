@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    }
+  </style>
+</head>
+<body class="bg-transparent text-slate-800 antialiased p-3 flex justify-center">
+  <div class="bg-white text-slate-800 border border-slate-200 rounded-2xl p-4 shadow-sm max-w-lg w-full">
+    <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-200">
+      <h2 class="text-sm font-bold tracking-wide uppercase text-slate-700">Desktop Splash Screen Architecture</h2>
+      <span class="text-xs bg-blue-50 text-blue-700 border border-blue-200 font-bold px-2 py-0.5 rounded-full">Light Contrast</span>
+    </div>
+
+    <!-- Desktop Frameless Splash Window (Light Theme) -->
+    <div class="relative mx-auto w-full max-w-md bg-white border border-slate-300 rounded-2xl shadow-xl p-6 overflow-hidden">
+      
+      <!-- [1] Frameless Window Background -->
+      <div class="absolute top-3 right-3">
+        <span class="badge bg-blue-600">1</span>
+      </div>
+
+      <!-- Header: [2] Branding & Logo -->
+      <div class="flex items-center gap-4 mb-6">
+        <div class="relative">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-emerald-500 flex items-center justify-center shadow-md shadow-blue-500/20">
+            <svg class="w-8 h-8 text-amber-300" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+          </div>
+          <span class="badge absolute -top-2 -left-2 bg-amber-500 text-slate-950 font-extrabold">2</span>
+        </div>
+
+        <!-- [3] App Name & Edition -->
+        <div class="relative flex-1">
+          <div class="flex items-center gap-2">
+            <h1 class="text-lg font-extrabold text-slate-900 tracking-wide">P&C Designer</h1>
+            <span class="text-[12px] bg-blue-50 border border-blue-200 text-blue-700 font-bold px-2 py-0.5 rounded">v2026.1</span>
+          </div>
+          <p class="text-xs text-slate-500 font-medium">Protection & Control Suite</p>
+          <span class="badge absolute -top-1 -right-1 bg-blue-600">3</span>
+        </div>
+      </div>
+
+      <!-- Middle/Bottom: [4] Progress Bar & Status Text -->
+      <div class="space-y-2 mb-4">
+        <div class="relative flex justify-between text-xs text-slate-700 font-medium">
+          <span>Loading core calculation plugins & workspace...</span>
+          <span class="font-mono font-bold text-emerald-700">68%</span>
+          <span class="badge absolute -top-4 right-1/2 bg-emerald-600">4</span>
+        </div>
+
+        <!-- Progress Track (Green & Blue Gradient with Yellow Glow) -->
+        <div class="w-full h-2 bg-slate-100 border border-slate-200 rounded-full overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-blue-600 via-emerald-500 to-amber-400 w-[68%] rounded-full transition-all"></div>
+        </div>
+      </div>
+
+      <!-- Footer: [5] Licensing & Build Info -->
+      <div class="relative pt-3 border-t border-slate-200 flex justify-between items-center text-[12px] text-slate-500 font-medium">
+        <div>Licensed to: <span class="text-slate-800 font-semibold">ICIS Enterprise</span></div>
+        <div class="font-mono">Build 14208</div>
+        <span class="badge absolute -top-2 right-0 bg-amber-500 text-slate-950 font-extrabold">5</span>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>
