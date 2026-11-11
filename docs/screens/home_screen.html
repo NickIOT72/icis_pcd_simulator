@@ -846,9 +846,23 @@
             </div>
           </div>
 
-          <!-- Canvas Interactive Controls: Zoom, Fit In, Sheet Format & Run Study -->
+          <!-- Canvas Interactive Controls: Undo/Redo, Zoom, Fit In, Sheet Format & Run Study -->
           <div class="flex items-center gap-3">
             
+            <!-- Undo / Redo History Controls -->
+            <div class="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs">
+              <button id="btn-undo" onclick="undo()" disabled class="p-1.5 rounded text-slate-400 font-medium transition-all flex items-center justify-center opacity-40 cursor-not-allowed" title="Undo / Deshacer (Ctrl+Z)">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 10h10a5 5 0 015 5v2m-15-7l4-4m-4 4l4 4"/>
+                </svg>
+              </button>
+              <button id="btn-redo" onclick="redo()" disabled class="p-1.5 rounded text-slate-400 font-medium transition-all flex items-center justify-center opacity-40 cursor-not-allowed" title="Redo / Rehacer (Ctrl+Y)">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M21 10H11a5 5 0 00-5 5v2m15-7l-4-4m4 4l-4 4"/>
+                </svg>
+              </button>
+            </div>
+
             <!-- Zoom Controls & Fit In -->
             <div class="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs">
               <button onclick="zoomFitIn()" class="p-1.5 rounded hover:bg-white text-slate-700 hover:text-blue-700 font-medium transition-all flex items-center justify-center" title="Fit In (100% Zoom & Recenter)">
@@ -898,9 +912,51 @@
           <div id="cad-sheet-zoom-wrapper" class="transition-transform duration-75 origin-center my-auto">
             
             <!-- Technical Engineering Sheet Container with Blue Border (Empty & Transparent, directly reflecting the canvas grid) -->
-            <div id="engineering-sheet-boundary" onclick="if(event.target === this) { selectedPlacedInstanceId = null; renderPlacedCanvasElements(); }" class="bg-transparent border-2 border-blue-600 rounded-sm relative transition-all duration-200" style="width: 820px; height: 530px;">
+            <div id="engineering-sheet-boundary" oncontextmenu="event.preventDefault();" onclick="handleSheetBackgroundClick(event)" class="bg-transparent border-2 border-blue-600 rounded-sm relative transition-all duration-200" style="width: 820px; height: 530px;">
+              <!-- SVG Layer for Bus & Net Routes (Orthogonal Routing & Rubberbanding) -->
+              <svg id="cad-bus-routes-svg" class="absolute inset-0 w-full h-full pointer-events-none z-10" style="overflow: visible;"></svg>
               <!-- Container for Placed Interactive CAD Elements -->
-              <div id="placed-cad-elements-container" onclick="if(event.target === this) { selectedPlacedInstanceId = null; renderPlacedCanvasElements(); }" class="w-full h-full relative overflow-hidden"></div>
+              <div id="placed-cad-elements-container" class="w-full h-full relative overflow-hidden z-20 pointer-events-auto"></div>
+              
+              <!-- Full-Width Bottom Title Strip (Cajetín Inferior Corrido) -->
+              <div id="engineering-cajetin-strip" class="absolute bottom-0 left-0 w-full h-11 bg-slate-50/95 border-t-2 border-blue-600 z-30 select-none font-mono flex divide-x divide-slate-300 text-[9.5px]">
+                <!-- Cell 1: Logo & Company -->
+                <div onclick="openCajetinCellEdit('company')" class="w-32 px-2.5 py-1 flex items-center gap-1.5 shrink-0 bg-blue-600/10 hover:bg-blue-600/20 cursor-pointer transition-colors" title="Click para editar Empresa / Logo">
+                  <div class="w-6 h-6 rounded bg-gradient-to-tr from-blue-700 to-emerald-600 text-white font-bold text-[10px] flex items-center justify-center shrink-0 shadow-2xs">
+                    ⚡
+                  </div>
+                  <div class="leading-tight truncate">
+                    <div id="cajetin-cell-company" class="font-bold text-blue-900 text-[10px] truncate">ICIS Power Systems</div>
+                    <div class="text-[7.5px] text-slate-500 uppercase tracking-tighter">Protection & Control</div>
+                  </div>
+                </div>
+
+                <!-- Cell 2: Project & Substation Scope -->
+                <div onclick="openCajetinCellEdit('project')" class="flex-1 px-3 py-1 flex flex-col justify-center min-w-0 hover:bg-blue-50/60 cursor-pointer transition-colors" title="Click para editar Proyecto / Ingeniero">
+                  <div class="text-[7.5px] uppercase font-bold text-slate-400">Proyecto / Subestación</div>
+                  <div id="cajetin-cell-project" class="font-bold text-slate-800 truncate text-[10px]">Substation San Martin 115/13.8kV</div>
+                  <div id="cajetin-cell-engineer" class="text-[8px] text-slate-500 truncate">Ing: Carlos Mendoza • Prot. & Control</div>
+                </div>
+
+                <!-- Cell 3: Drawing Title & Document Code -->
+                <div onclick="openCajetinCellEdit('drawing')" class="w-56 px-3 py-1 flex flex-col justify-center shrink-0 hover:bg-blue-50/60 cursor-pointer transition-colors" title="Click para editar Título / Código">
+                  <div class="text-[7.5px] uppercase font-bold text-slate-400">Diagrama / Identificador</div>
+                  <div id="cajetin-cell-title" class="font-bold text-blue-700 truncate text-[10px]">Diagrama Unifilar Principal (SLD)</div>
+                  <div id="cajetin-cell-code" class="text-[8px] text-slate-600 font-bold">DOC: PCD-SLD-115-001</div>
+                </div>
+
+                <!-- Cell 4: Revision, Sheet, Date & Format -->
+                <div onclick="openCajetinCellEdit('meta')" class="w-40 px-2.5 py-1 flex flex-col justify-between shrink-0 text-[8px] text-slate-600 hover:bg-blue-50/60 cursor-pointer transition-colors" title="Click para editar Revisión / Paginación / Fecha">
+                  <div class="flex items-center justify-between">
+                    <span>REV: <b id="cajetin-cell-rev" class="text-emerald-700 font-bold">1.0</b></span>
+                    <span>HOJA: <b id="cajetin-cell-sheet" class="text-slate-800 font-bold">1 / 1</b></span>
+                  </div>
+                  <div class="flex items-center justify-between border-t border-slate-200 pt-0.5 mt-0.5">
+                    <span id="cajetin-cell-date">2026-11-11</span>
+                    <span id="cajetin-cell-format" class="font-bold text-blue-700">ANSI B</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
           </div>
@@ -924,6 +980,7 @@
       </span>
       <span>Workspace: <b class="text-slate-800 font-semibold">ICIS / Protection & Control</b></span>
       <span id="footer-active-project">Active Project: <b class="text-slate-800 font-semibold">Substation_San_Martin_115kV.pcd</b></span>
+      <span id="footer-grid-snap" onclick="cycleGridSnap()" class="cursor-pointer px-2 py-0.5 rounded bg-blue-50 border border-blue-200 text-blue-700 font-bold hover:bg-blue-100 transition-colors" title="Click or Press 'G' to switch Snap Resolution">Snap: 5mm (G)</span>
     </div>
 
     <div class="flex items-center gap-4">
@@ -1683,12 +1740,16 @@
         const btn = document.getElementById('tool-btn-' + t);
         if (!btn) return;
         if (t === tool) {
-          btn.className = "px-2 py-1 rounded bg-white text-blue-700 font-bold shadow-2xs flex items-center justify-center gap-1 transition-all";
+          btn.className = "px-2 py-1 rounded bg-white text-blue-700 font-bold shadow-2xs flex items-center justify-center gap-1 transition-all ring-1 ring-blue-500";
         } else {
           btn.className = "px-2 py-1 rounded hover:bg-slate-100 text-slate-700 font-medium flex items-center justify-center gap-1 transition-all";
         }
       });
-      showNotification(`Herramienta activa: ${tool.toUpperCase()}`);
+      const sheet = document.getElementById('engineering-sheet-boundary');
+      if (sheet) {
+        sheet.style.cursor = tool === 'bus' ? 'crosshair' : 'default';
+      }
+      showNotification(`Herramienta activa: ${tool.toUpperCase()}${tool === 'bus' ? ' (Arrastre sobre el plano para trazar BUS)' : ''}`);
     }
 
     // ========================================================
@@ -1994,139 +2055,205 @@
     }
 
     // ========================================================
-    // CAD Symbols with Numbered Terminals Generator
+    // CAD Symbols with Numbered Terminals & Proteus Schematic Generator
     // ========================================================
-    function getCadSymbolSvgWithTerminals(category, ansiCode, name) {
+    function getCadSymbolSvgWithTerminals(category, ansiCode, name, instanceId, rating, isWorkspace = false) {
       const cat = (category || '').toUpperCase();
       const ansi = (ansiCode || '').toUpperCase();
+      const instLabel = instanceId || '';
+      const displayRating = rating || '';
 
-      if (cat === 'BREAKER' || ansi.includes('52')) {
-        // Circuit Breaker (ANSI 52) with Terminals 1 (Top/In) and 2 (Bottom/Out)
-        return `
-          <svg viewBox="0 0 100 68" class="w-full h-full">
-            <!-- Top lead wire -->
-            <line x1="50" y1="12" x2="50" y2="24" stroke="#1e293b" stroke-width="2"/>
-            <!-- Breaker body box -->
-            <rect x="36" y="24" width="28" height="22" rx="2" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
-            <line x1="39" y1="27" x2="61" y2="43" stroke="#2563eb" stroke-width="2"/>
-            <line x1="61" y1="27" x2="39" y2="43" stroke="#2563eb" stroke-width="2"/>
-            <!-- Bottom lead wire -->
-            <line x1="50" y1="46" x2="50" y2="56" stroke="#1e293b" stroke-width="2"/>
-            <!-- Terminal 1 (Top) -->
-            <circle cx="50" cy="8" r="5" fill="#2563eb" stroke="#ffffff" stroke-width="1.5"/>
-            <text x="50" y="10.5" text-anchor="middle" fill="#ffffff" font-size="6" font-weight="bold" font-family="sans-serif">1</text>
-            <!-- Terminal 2 (Bottom) -->
-            <circle cx="50" cy="60" r="5" fill="#2563eb" stroke="#ffffff" stroke-width="1.5"/>
-            <text x="50" y="62.5" text-anchor="middle" fill="#ffffff" font-size="6" font-weight="bold" font-family="sans-serif">2</text>
-            <!-- ANSI Code -->
-            <text x="70" y="38" fill="#1e40af" font-size="7.5" font-weight="bold" font-family="monospace">52</text>
-          </svg>
-        `;
-      } else if (cat === 'CT_VT' || ansi.includes('VT') || ansi.includes('CT')) {
-        if (ansi.includes('VT') || (name && name.toLowerCase().includes('voltage'))) {
-          // Voltage Transformer with Terminals H1, H2 (Primary) and X1, X2 (Secondary)
+      if (isWorkspace) {
+        // ====================================================
+        // PROTEUS CAD SCHEMATIC LOGIC (Bare vector symbols, no card container)
+        // ====================================================
+        if (cat === 'BREAKER' || ansi.includes('52')) {
+          const instNum = instLabel || '52_CB1';
           return `
-            <svg viewBox="0 0 100 68" class="w-full h-full">
-              <!-- Dual Coils -->
-              <circle cx="44" cy="34" r="11" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
-              <circle cx="56" cy="34" r="11" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
-              <!-- Stubs -->
-              <line x1="14" y1="25" x2="33" y2="25" stroke="#d97706" stroke-width="1.5"/>
-              <line x1="14" y1="43" x2="33" y2="43" stroke="#d97706" stroke-width="1.5"/>
-              <line x1="67" y1="25" x2="86" y2="25" stroke="#d97706" stroke-width="1.5"/>
-              <line x1="67" y1="43" x2="86" y2="43" stroke="#d97706" stroke-width="1.5"/>
-              <!-- Primary Terminals H1, H2 -->
-              <circle cx="10" cy="25" r="4.5" fill="#d97706" stroke="#ffffff" stroke-width="1.5"/>
-              <text x="10" y="27" text-anchor="middle" fill="#ffffff" font-size="4.5" font-weight="bold" font-family="sans-serif">H1</text>
-              <circle cx="10" cy="43" r="4.5" fill="#d97706" stroke="#ffffff" stroke-width="1.5"/>
-              <text x="10" y="45" text-anchor="middle" fill="#ffffff" font-size="4.5" font-weight="bold" font-family="sans-serif">H2</text>
-              <!-- Secondary Terminals X1, X2 -->
-              <circle cx="90" cy="25" r="4.5" fill="#b45309" stroke="#ffffff" stroke-width="1.5"/>
-              <text x="90" y="27" text-anchor="middle" fill="#ffffff" font-size="4.5" font-weight="bold" font-family="sans-serif">X1</text>
-              <circle cx="90" cy="43" r="4.5" fill="#b45309" stroke="#ffffff" stroke-width="1.5"/>
-              <text x="90" y="45" text-anchor="middle" fill="#ffffff" font-size="4.5" font-weight="bold" font-family="sans-serif">X2</text>
-              <text x="50" y="58" text-anchor="middle" fill="#b45309" font-size="6" font-weight="bold" font-family="monospace">VT</text>
+            <svg viewBox="0 0 130 90" class="w-full h-full">
+              <!-- Top Lead & Pin 1 -->
+              <line x1="65" y1="8" x2="65" y2="28" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round"/>
+              <circle cx="65" cy="8" r="3.5" fill="#2563eb" stroke="#ffffff" stroke-width="1"/>
+              <text x="53" y="11" font-size="8.5" font-family="monospace" font-weight="bold" fill="#2563eb">1</text>
+              <!-- Switch Cross Box (ANSI 52) -->
+              <rect x="54" y="28" width="22" height="22" fill="#ffffff" stroke="#0f172a" stroke-width="2.5"/>
+              <line x1="54" y1="28" x2="76" y2="50" stroke="#0f172a" stroke-width="2.5"/>
+              <line x1="76" y1="28" x2="54" y2="50" stroke="#0f172a" stroke-width="2.5"/>
+              <!-- Bottom Lead & Pin 2 -->
+              <line x1="65" y1="50" x2="65" y2="72" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round"/>
+              <circle cx="65" cy="72" r="3.5" fill="#2563eb" stroke="#ffffff" stroke-width="1"/>
+              <text x="53" y="75" font-size="8.5" font-family="monospace" font-weight="bold" fill="#2563eb">2</text>
+              <!-- Proteus Designator & Rating Text -->
+              <text x="82" y="38" font-size="9.5" font-family="monospace" font-weight="bold" fill="#0f172a">${instNum}</text>
+              <text x="82" y="50" font-size="7.5" font-family="monospace" fill="#64748b">${displayRating || '1200A'}</text>
+            </svg>
+          `;
+        } else if (cat === 'CT_VT' || ansi.includes('VT') || ansi.includes('CT')) {
+          if (ansi.includes('VT') || (name && name.toLowerCase().includes('voltage'))) {
+            const instNum = instLabel || 'VT1';
+            return `
+              <svg viewBox="0 0 130 90" class="w-full h-full">
+                <!-- Dual Windings -->
+                <circle cx="52" cy="40" r="13" fill="none" stroke="#d97706" stroke-width="2.5"/>
+                <circle cx="72" cy="40" r="13" fill="none" stroke="#d97706" stroke-width="2.5"/>
+                <!-- Primary Leads H1, H2 -->
+                <line x1="16" y1="30" x2="39" y2="30" stroke="#d97706" stroke-width="2"/>
+                <circle cx="16" cy="30" r="3.5" fill="#d97706" stroke="#ffffff" stroke-width="1"/>
+                <text x="20" y="24" font-size="7.5" font-family="monospace" font-weight="bold" fill="#d97706">H1</text>
+                <line x1="16" y1="50" x2="39" y2="50" stroke="#d97706" stroke-width="2"/>
+                <circle cx="16" cy="50" r="3.5" fill="#d97706" stroke="#ffffff" stroke-width="1"/>
+                <text x="20" y="60" font-size="7.5" font-family="monospace" font-weight="bold" fill="#d97706">H2</text>
+                <!-- Secondary Leads X1, X2 -->
+                <line x1="85" y1="30" x2="108" y2="30" stroke="#b45309" stroke-width="2"/>
+                <circle cx="108" cy="30" r="3.5" fill="#b45309" stroke="#ffffff" stroke-width="1"/>
+                <text x="96" y="24" font-size="7.5" font-family="monospace" font-weight="bold" fill="#b45309">X1</text>
+                <line x1="85" y1="50" x2="108" y2="50" stroke="#b45309" stroke-width="2"/>
+                <circle cx="108" cy="50" r="3.5" fill="#b45309" stroke="#ffffff" stroke-width="1"/>
+                <text x="96" y="60" font-size="7.5" font-family="monospace" font-weight="bold" fill="#b45309">X2</text>
+                <text x="62" y="74" font-size="8.5" font-family="monospace" font-weight="bold" text-anchor="middle" fill="#0f172a">${instNum} 13.8kV/115V</text>
+              </svg>
+            `;
+          } else {
+            const instNum = instLabel || 'CT1';
+            return `
+              <svg viewBox="0 0 130 90" class="w-full h-full">
+                <!-- Primary Bar Line (P1 to P2) -->
+                <line x1="16" y1="45" x2="114" y2="45" stroke="#0f172a" stroke-width="3"/>
+                <circle cx="16" cy="45" r="3.5" fill="#d97706" stroke="#ffffff" stroke-width="1"/>
+                <text x="16" y="36" font-size="8" font-family="monospace" font-weight="bold" fill="#d97706">P1</text>
+                <circle cx="114" cy="45" r="3.5" fill="#d97706" stroke="#ffffff" stroke-width="1"/>
+                <text x="104" y="36" font-size="8" font-family="monospace" font-weight="bold" fill="#d97706">P2</text>
+                <!-- CT Toroid Coil -->
+                <circle cx="65" cy="45" r="16" fill="#ffffff" stroke="#d97706" stroke-width="2.5"/>
+                <text x="65" y="48" font-size="8" font-family="monospace" font-weight="bold" text-anchor="middle" fill="#b45309">CT</text>
+                <!-- Secondary Leads S1 & S2 -->
+                <line x1="57" y1="29" x2="57" y2="10" stroke="#b45309" stroke-width="2"/>
+                <circle cx="57" cy="10" r="3.5" fill="#b45309" stroke="#ffffff" stroke-width="1"/>
+                <text x="47" y="14" font-size="7.5" font-family="monospace" font-weight="bold" fill="#b45309">S1</text>
+                <line x1="73" y1="29" x2="73" y2="10" stroke="#b45309" stroke-width="2"/>
+                <circle cx="73" cy="10" r="3.5" fill="#b45309" stroke="#ffffff" stroke-width="1"/>
+                <text x="79" y="14" font-size="7.5" font-family="monospace" font-weight="bold" fill="#b45309">S2</text>
+                <text x="65" y="74" font-size="8.5" font-family="monospace" font-weight="bold" text-anchor="middle" fill="#0f172a">${instNum} (${displayRating || '1200:5A'})</text>
+              </svg>
+            `;
+          }
+        } else if (cat === 'XFMR' || ansi.includes('XFMR')) {
+          const instNum = instLabel || 'TR1';
+          return `
+            <svg viewBox="0 0 130 90" class="w-full h-full">
+              <!-- Interlocking Coils -->
+              <circle cx="54" cy="40" r="16" fill="none" stroke="#9333ea" stroke-width="2.5"/>
+              <circle cx="74" cy="40" r="16" fill="none" stroke="#7e22ce" stroke-width="2.5"/>
+              <!-- HV Primaries H1, H2 -->
+              <line x1="18" y1="28" x2="38" y2="28" stroke="#9333ea" stroke-width="2"/>
+              <circle cx="18" cy="28" r="3.5" fill="#9333ea" stroke="#ffffff" stroke-width="1"/>
+              <text x="22" y="22" font-size="7.5" font-family="monospace" font-weight="bold" fill="#9333ea">H1</text>
+              <line x1="18" y1="52" x2="38" y2="52" stroke="#9333ea" stroke-width="2"/>
+              <circle cx="18" cy="52" r="3.5" fill="#9333ea" stroke="#ffffff" stroke-width="1"/>
+              <text x="22" y="62" font-size="7.5" font-family="monospace" font-weight="bold" fill="#9333ea">H2</text>
+              <!-- LV Secondaries X1, X2 -->
+              <line x1="90" y1="28" x2="110" y2="28" stroke="#7e22ce" stroke-width="2"/>
+              <circle cx="110" cy="28" r="3.5" fill="#7e22ce" stroke="#ffffff" stroke-width="1"/>
+              <text x="98" y="22" font-size="7.5" font-family="monospace" font-weight="bold" fill="#7e22ce">X1</text>
+              <line x1="90" y1="52" x2="110" y2="52" stroke="#7e22ce" stroke-width="2"/>
+              <circle cx="110" cy="52" r="3.5" fill="#7e22ce" stroke="#ffffff" stroke-width="1"/>
+              <text x="98" y="62" font-size="7.5" font-family="monospace" font-weight="bold" fill="#7e22ce">X2</text>
+              <text x="64" y="75" font-size="8.5" font-family="monospace" font-weight="bold" text-anchor="middle" fill="#0f172a">${instNum} 115/13.8kV</text>
             </svg>
           `;
         } else {
-          // Current Transformer (CT) with Line P1, P2 and Secondary S1, S2
+          // Protection Relay ANSI 50/51/87/21
+          const instNum = instLabel || 'RLY1';
+          const displayAnsi = ansi.includes('87') ? '87' : ansi.includes('21') ? '21' : '50/51';
           return `
-            <svg viewBox="0 0 100 68" class="w-full h-full">
-              <!-- Primary Line passing through -->
-              <line x1="14" y1="34" x2="86" y2="34" stroke="#d97706" stroke-width="2.5"/>
-              <!-- CT Toroid Coil -->
-              <circle cx="50" cy="34" r="14" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
-              <text x="50" y="37" text-anchor="middle" fill="#b45309" font-size="7" font-weight="bold" font-family="monospace">CT</text>
-              <!-- Secondary tap stubs -->
-              <line x1="43" y1="20" x2="43" y2="12" stroke="#d97706" stroke-width="1.5"/>
-              <line x1="57" y1="20" x2="57" y2="12" stroke="#d97706" stroke-width="1.5"/>
-              <!-- Primary Terminal P1 (Left) -->
-              <circle cx="10" cy="34" r="5" fill="#d97706" stroke="#ffffff" stroke-width="1.5"/>
-              <text x="10" y="36" text-anchor="middle" fill="#ffffff" font-size="5" font-weight="bold" font-family="sans-serif">P1</text>
-              <!-- Primary Terminal P2 (Right) -->
-              <circle cx="90" cy="34" r="5" fill="#d97706" stroke="#ffffff" stroke-width="1.5"/>
-              <text x="90" y="36" text-anchor="middle" fill="#ffffff" font-size="5" font-weight="bold" font-family="sans-serif">P2</text>
-              <!-- Secondary Terminal S1 (Top Left) -->
-              <circle cx="43" cy="8" r="4.5" fill="#b45309" stroke="#ffffff" stroke-width="1.5"/>
-              <text x="43" y="10" text-anchor="middle" fill="#ffffff" font-size="4.5" font-weight="bold" font-family="sans-serif">S1</text>
-              <!-- Secondary Terminal S2 (Top Right) -->
-              <circle cx="57" cy="8" r="4.5" fill="#b45309" stroke="#ffffff" stroke-width="1.5"/>
-              <text x="57" y="10" text-anchor="middle" fill="#ffffff" font-size="4.5" font-weight="bold" font-family="sans-serif">S2</text>
+            <svg viewBox="0 0 130 90" class="w-full h-full">
+              <!-- Center Relay Circle -->
+              <circle cx="65" cy="38" r="18" fill="#ffffff" stroke="#0f172a" stroke-width="2.5"/>
+              <text x="65" y="42" font-size="9" font-family="monospace" font-weight="bold" text-anchor="middle" fill="#0f172a">${displayAnsi}</text>
+              <!-- Left Leads (Pins 1 & 2) -->
+              <line x1="18" y1="28" x2="47" y2="28" stroke="#0f172a" stroke-width="2"/>
+              <circle cx="18" cy="28" r="3.5" fill="#2563eb" stroke="#ffffff" stroke-width="1"/>
+              <text x="22" y="22" font-size="7.5" font-family="monospace" font-weight="bold" fill="#2563eb">1</text>
+              <line x1="18" y1="48" x2="47" y2="48" stroke="#0f172a" stroke-width="2"/>
+              <circle cx="18" cy="48" r="3.5" fill="#2563eb" stroke="#ffffff" stroke-width="1"/>
+              <text x="22" y="58" font-size="7.5" font-family="monospace" font-weight="bold" fill="#2563eb">2</text>
+              <!-- Right Leads (Pins 3 & 4) -->
+              <line x1="83" y1="28" x2="112" y2="28" stroke="#0f172a" stroke-width="2"/>
+              <circle cx="112" cy="28" r="3.5" fill="#1d4ed8" stroke="#ffffff" stroke-width="1"/>
+              <text x="100" y="22" font-size="7.5" font-family="monospace" font-weight="bold" fill="#1d4ed8">3</text>
+              <line x1="83" y1="48" x2="112" y2="48" stroke="#0f172a" stroke-width="2"/>
+              <circle cx="112" cy="48" r="3.5" fill="#1d4ed8" stroke="#ffffff" stroke-width="1"/>
+              <text x="100" y="58" font-size="7.5" font-family="monospace" font-weight="bold" fill="#1d4ed8">4</text>
+              <text x="65" y="74" font-size="8.5" font-family="monospace" font-weight="bold" text-anchor="middle" fill="#0f172a">${instNum} (${name.split(' ')[0]})</text>
             </svg>
           `;
         }
-      } else if (cat === 'XFMR' || ansi.includes('XFMR')) {
-        // Power Transformer with HV Terminals H1, H2 and LV Terminals X1, X2
-        return `
-          <svg viewBox="0 0 100 68" class="w-full h-full">
-            <!-- Interlocking Coils -->
-            <circle cx="42" cy="34" r="13" fill="#ffffff" stroke="#9333ea" stroke-width="2"/>
-            <circle cx="58" cy="34" r="13" fill="#ffffff" stroke="#9333ea" stroke-width="2"/>
-            <!-- Leads -->
-            <line x1="14" y1="24" x2="30" y2="24" stroke="#9333ea" stroke-width="1.5"/>
-            <line x1="14" y1="44" x2="30" y2="44" stroke="#9333ea" stroke-width="1.5"/>
-            <line x1="70" y1="24" x2="86" y2="24" stroke="#9333ea" stroke-width="1.5"/>
-            <line x1="70" y1="44" x2="86" y2="44" stroke="#9333ea" stroke-width="1.5"/>
-            <!-- HV Terminals H1, H2 -->
-            <circle cx="10" cy="24" r="4.5" fill="#9333ea" stroke="#ffffff" stroke-width="1.5"/>
-            <text x="10" y="26" text-anchor="middle" fill="#ffffff" font-size="4.5" font-weight="bold" font-family="sans-serif">H1</text>
-            <circle cx="10" cy="44" r="4.5" fill="#9333ea" stroke="#ffffff" stroke-width="1.5"/>
-            <text x="10" y="46" text-anchor="middle" fill="#ffffff" font-size="4.5" font-weight="bold" font-family="sans-serif">H2</text>
-            <!-- LV Terminals X1, X2 -->
-            <circle cx="90" cy="24" r="4.5" fill="#7e22ce" stroke="#ffffff" stroke-width="1.5"/>
-            <text x="90" y="26" text-anchor="middle" fill="#ffffff" font-size="4.5" font-weight="bold" font-family="sans-serif">X1</text>
-            <circle cx="90" cy="44" r="4.5" fill="#7e22ce" stroke="#ffffff" stroke-width="1.5"/>
-            <text x="90" y="46" text-anchor="middle" fill="#ffffff" font-size="4.5" font-weight="bold" font-family="sans-serif">X2</text>
-            <text x="50" y="58" text-anchor="middle" fill="#7e22ce" font-size="6" font-weight="bold" font-family="monospace">XFMR</text>
-          </svg>
-        `;
       } else {
-        // Protection Relays (ANSI 50/51/87/21) with 4 Numbered Terminals 1, 2, 3, 4
-        const displayAnsi = ansi.includes('87') ? '87' : ansi.includes('21') ? '21' : '50/51';
-        return `
-          <svg viewBox="0 0 100 68" class="w-full h-full">
-            <!-- Center Relay Circle -->
-            <circle cx="50" cy="34" r="16" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
-            <text x="50" y="37" text-anchor="middle" fill="#1e40af" font-size="7.5" font-weight="bold" font-family="monospace">${displayAnsi}</text>
-            <!-- Sensing & Trip Leads -->
-            <line x1="14" y1="24" x2="34" y2="24" stroke="#2563eb" stroke-width="1.5"/>
-            <line x1="14" y1="44" x2="34" y2="44" stroke="#2563eb" stroke-width="1.5"/>
-            <line x1="66" y1="24" x2="86" y2="24" stroke="#2563eb" stroke-width="1.5"/>
-            <line x1="66" y1="44" x2="86" y2="44" stroke="#2563eb" stroke-width="1.5"/>
-            <!-- Terminal 1 (Top Left) -->
-            <circle cx="10" cy="24" r="4.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.5"/>
-            <text x="10" y="26.5" text-anchor="middle" fill="#ffffff" font-size="5" font-weight="bold" font-family="sans-serif">1</text>
-            <!-- Terminal 2 (Bottom Left) -->
-            <circle cx="10" cy="44" r="4.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.5"/>
-            <text x="10" y="46.5" text-anchor="middle" fill="#ffffff" font-size="5" font-weight="bold" font-family="sans-serif">2</text>
-            <!-- Terminal 3 (Top Right) -->
-            <circle cx="90" cy="24" r="4.5" fill="#1d4ed8" stroke="#ffffff" stroke-width="1.5"/>
-            <text x="90" y="26.5" text-anchor="middle" fill="#ffffff" font-size="5" font-weight="bold" font-family="sans-serif">3</text>
-            <!-- Terminal 4 (Bottom Right) -->
-            <circle cx="90" cy="44" r="4.5" fill="#1d4ed8" stroke="#ffffff" stroke-width="1.5"/>
-            <text x="90" y="46.5" text-anchor="middle" fill="#ffffff" font-size="5" font-weight="bold" font-family="sans-serif">4</text>
-          </svg>
-        `;
+        // ====================================================
+        // COMPACT VECTOR SYMBOL (For Sidebar Device Cards)
+        // ====================================================
+        if (cat === 'BREAKER' || ansi.includes('52')) {
+          return `
+            <svg viewBox="0 0 80 46" class="w-full h-full">
+              <line x1="40" y1="2" x2="40" y2="15" stroke="#1e293b" stroke-width="2"/>
+              <circle cx="40" cy="2" r="2" fill="#2563eb"/>
+              <rect x="33" y="15" width="14" height="14" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+              <line x1="33" y1="15" x2="47" y2="29" stroke="#2563eb" stroke-width="2"/>
+              <line x1="47" y1="15" x2="33" y2="29" stroke="#2563eb" stroke-width="2"/>
+              <line x1="40" y1="29" x2="40" y2="42" stroke="#1e293b" stroke-width="2"/>
+              <circle cx="40" cy="42" r="2" fill="#2563eb"/>
+              <text x="52" y="24" font-size="6.5" font-family="monospace" font-weight="bold" fill="#1e40af">52</text>
+            </svg>
+          `;
+        } else if (cat === 'CT_VT' || ansi.includes('VT') || ansi.includes('CT')) {
+          if (ansi.includes('VT') || (name && name.toLowerCase().includes('voltage'))) {
+            return `
+              <svg viewBox="0 0 80 46" class="w-full h-full">
+                <circle cx="34" cy="23" r="10" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
+                <circle cx="46" cy="23" r="10" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
+                <line x1="12" y1="16" x2="24" y2="16" stroke="#d97706" stroke-width="1.5"/>
+                <line x1="12" y1="30" x2="24" y2="30" stroke="#d97706" stroke-width="1.5"/>
+                <line x1="56" y1="16" x2="68" y2="16" stroke="#b45309" stroke-width="1.5"/>
+                <line x1="56" y1="30" x2="68" y2="30" stroke="#b45309" stroke-width="1.5"/>
+              </svg>
+            `;
+          } else {
+            return `
+              <svg viewBox="0 0 80 46" class="w-full h-full">
+                <line x1="10" y1="23" x2="70" y2="23" stroke="#d97706" stroke-width="2"/>
+                <circle cx="40" cy="23" r="11" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
+                <text x="40" y="26" font-size="6.5" font-family="monospace" font-weight="bold" text-anchor="middle" fill="#b45309">CT</text>
+                <line x1="35" y1="12" x2="35" y2="4" stroke="#b45309" stroke-width="1.5"/>
+                <line x1="45" y1="12" x2="45" y2="4" stroke="#b45309" stroke-width="1.5"/>
+                <circle cx="35" cy="4" r="1.5" fill="#b45309"/>
+                <circle cx="45" cy="4" r="1.5" fill="#b45309"/>
+              </svg>
+            `;
+          }
+        } else if (cat === 'XFMR' || ansi.includes('XFMR')) {
+          return `
+            <svg viewBox="0 0 80 46" class="w-full h-full">
+              <circle cx="34" cy="23" r="10" fill="#ffffff" stroke="#9333ea" stroke-width="2"/>
+              <circle cx="46" cy="23" r="10" fill="#ffffff" stroke="#7e22ce" stroke-width="2"/>
+              <line x1="12" y1="16" x2="24" y2="16" stroke="#9333ea" stroke-width="1.5"/>
+              <line x1="12" y1="30" x2="24" y2="30" stroke="#9333ea" stroke-width="1.5"/>
+              <line x1="56" y1="16" x2="68" y2="16" stroke="#7e22ce" stroke-width="1.5"/>
+              <line x1="56" y1="30" x2="68" y2="30" stroke="#7e22ce" stroke-width="1.5"/>
+            </svg>
+          `;
+        } else {
+          const displayAnsi = ansi.includes('87') ? '87' : ansi.includes('21') ? '21' : '50/51';
+          return `
+            <svg viewBox="0 0 80 46" class="w-full h-full">
+              <circle cx="40" cy="23" r="13" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+              <text x="40" y="26" font-size="7" font-family="monospace" font-weight="bold" text-anchor="middle" fill="#1e40af">${displayAnsi}</text>
+              <line x1="12" y1="18" x2="27" y2="18" stroke="#2563eb" stroke-width="1.5"/>
+              <line x1="12" y1="28" x2="27" y2="28" stroke="#2563eb" stroke-width="1.5"/>
+              <line x1="53" y1="18" x2="68" y2="18" stroke="#2563eb" stroke-width="1.5"/>
+              <line x1="53" y1="28" x2="68" y2="28" stroke="#2563eb" stroke-width="1.5"/>
+            </svg>
+          `;
+        }
       }
     }
 
@@ -2162,16 +2289,17 @@
         item.onmouseleave = () => hideDeviceTooltip();
 
         item.className = isSelected
-          ? "relative border-2 border-blue-600 bg-blue-50/70 rounded-lg p-1.5 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing shadow-xs transition-all ring-1 ring-blue-500 select-none group"
-          : "relative border border-slate-300 hover:border-blue-400 bg-white rounded-lg p-1.5 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing hover:shadow-xs transition-all select-none group";
+          ? "relative border-2 border-blue-600 bg-blue-50/70 rounded-lg p-2 flex flex-col items-center justify-between cursor-grab active:cursor-grabbing shadow-xs transition-all ring-1 ring-blue-500 select-none group"
+          : "relative border border-slate-300 hover:border-blue-400 bg-white rounded-lg p-2 flex flex-col items-center justify-between cursor-grab active:cursor-grabbing hover:shadow-xs transition-all select-none group";
 
         item.innerHTML = `
-          <!-- CAD Symbol (Centered) -->
-          <div class="w-full h-7 flex items-center justify-center pointer-events-none">
-            ${dev.symbolSvg}
+          <!-- CAD Symbol (Embedded directly inside sidebar card) -->
+          <div class="w-full h-9 flex items-center justify-center pointer-events-none p-0.5">
+            ${getCadSymbolSvgWithTerminals(dev.category, dev.ansi, dev.name, null, null, false)}
           </div>
-          <!-- Device Short Label -->
-          <span class="text-[10px] font-bold ${isSelected ? 'text-blue-800' : 'text-slate-700'} truncate max-w-[75px] mt-1">${dev.name}</span>
+          <!-- Device Short Label & ANSI -->
+          <span class="text-[9.5px] font-bold ${isSelected ? 'text-blue-800' : 'text-slate-700'} truncate max-w-[80px] mt-1 text-center">${dev.name}</span>
+          <span class="text-[8px] font-mono text-slate-400 truncate max-w-[75px]">${dev.ansi.split(' ')[0]}</span>
         `;
 
         container.appendChild(item);
@@ -2243,8 +2371,8 @@
       if (alsoPlaceOnCanvas) {
         // Automatically place in center of engineering sheet
         const sheet = document.getElementById('engineering-sheet-boundary');
-        const centerX = sheet ? Math.round((sheet.offsetWidth - 110) / 2) : 350;
-        const centerY = sheet ? Math.round((sheet.offsetHeight - 76) / 2) : 220;
+        const centerX = sheet ? Math.round((sheet.offsetWidth - 125) / 2) : 350;
+        const centerY = sheet ? Math.round((sheet.offsetHeight - 85) / 2) : 220;
         placeDeviceOnCanvas(newDev, centerX, centerY);
       }
     }
@@ -2287,14 +2415,10 @@
       const ghost = document.getElementById('canvas-drag-ghost');
       if (!ghost) return;
       const ansiCode = (dev.ansi || '').split(' ')[0] || 'ANSI';
-      const symbolSvg = getCadSymbolSvgWithTerminals(dev.category, ansiCode, dev.name);
+      const symbolSvg = getCadSymbolSvgWithTerminals(dev.category, ansiCode, dev.name, null, dev.rating, true);
       ghost.innerHTML = `
-        <div class="w-28 bg-white/90 backdrop-blur-xs border-2 border-dashed border-blue-500 rounded-lg p-2 shadow-2xl flex flex-col items-center pointer-events-none opacity-70">
-          <div class="w-full h-12 flex items-center justify-center">
-            ${symbolSvg}
-          </div>
-          <div class="text-[9px] font-bold text-blue-700 truncate max-w-[100px] mt-1">${dev.name}</div>
-          <div class="text-[8px] font-mono text-slate-500">${dev.ansi}</div>
+        <div class="w-32 bg-transparent pointer-events-none opacity-70 filter drop-shadow-md">
+          ${symbolSvg}
         </div>
       `;
     }
@@ -2302,8 +2426,8 @@
     function showDragGhost(clientX, clientY) {
       const ghost = document.getElementById('canvas-drag-ghost');
       if (ghost) {
-        ghost.style.left = `${clientX - 56}px`;
-        ghost.style.top = `${clientY - 42}px`;
+        ghost.style.left = `${clientX - 65}px`;
+        ghost.style.top = `${clientY - 45}px`;
         ghost.classList.remove('hidden');
       }
     }
@@ -2352,27 +2476,624 @@
       const sheetX = (e.clientX - rect.left) / scale;
       const sheetY = (e.clientY - rect.top) / scale;
 
-      const itemWidth = 110;
-      const itemHeight = 76;
-      const posX = Math.max(5, Math.min(sheet.offsetWidth - itemWidth - 5, Math.round(sheetX - itemWidth / 2)));
-      const posY = Math.max(5, Math.min(sheet.offsetHeight - itemHeight - 5, Math.round(sheetY - itemHeight / 2)));
+      const itemWidth = 125;
+      const itemHeight = 85;
+      const maxX = sheet.offsetWidth - itemWidth - 5;
+      // Strict Cajetín Exclusion Zone: cannot drop inside bottom cajetín strip
+      const maxY = sheet.offsetHeight - CAJETIN_HEIGHT - itemHeight - 8;
+      const posX = snapCoord(Math.max(5, Math.min(maxX, Math.round(sheetX - itemWidth / 2))));
+      const posY = snapCoord(Math.max(5, Math.min(maxY, Math.round(sheetY - itemHeight / 2))));
 
       placeDeviceOnCanvas(dev, posX, posY);
     }
 
     // ========================================================
-    // Placed CAD Components in Workspace Management
+    // Grid Snap Controller (1mm, 5mm, 10mm)
+    // ========================================================
+    const gridSnapModes = [
+      { name: '1mm', step: 4 },
+      { name: '5mm', step: 20 },
+      { name: '10mm', step: 40 }
+    ];
+    let currentSnapIndex = 1; // 5mm default
+
+    function cycleGridSnap() {
+      currentSnapIndex = (currentSnapIndex + 1) % gridSnapModes.length;
+      updateGridSnapUI();
+    }
+
+    function updateGridSnapUI() {
+      const mode = gridSnapModes[currentSnapIndex];
+      const pill = document.getElementById('footer-grid-snap');
+      if (pill) {
+        pill.innerHTML = `Snap: <b class="text-blue-600">${mode.name}</b> (G)`;
+      }
+      showNotification(`Grid Snap activo: ${mode.name} (${mode.step}px)`);
+    }
+
+    function snapCoord(val) {
+      const s = gridSnapModes[currentSnapIndex].step;
+      return Math.round(val / s) * s;
+    }
+
+    // ========================================================
+    // Cajetín Inferior (Bottom Title Strip) & Exclusion Zone
+    // ========================================================
+    const CAJETIN_HEIGHT = 44;
+
+    let cajetinMetadata = {
+      company: "ICIS Power Systems",
+      companySub: "Protection & Control",
+      project: "Substation San Martin 115/13.8kV",
+      engineer: "Ing: Carlos Mendoza • Prot. & Control",
+      title: "Diagrama Unifilar Principal (SLD)",
+      docCode: "DOC: PCD-SLD-115-001",
+      rev: "1.0",
+      sheet: "1 / 1",
+      date: "2026-11-11"
+    };
+
+    function renderCajetin() {
+      const cCompany = document.getElementById('cajetin-cell-company');
+      if (cCompany) cCompany.textContent = cajetinMetadata.company;
+      const cProject = document.getElementById('cajetin-cell-project');
+      if (cProject) cProject.textContent = cajetinMetadata.project;
+      const cEngineer = document.getElementById('cajetin-cell-engineer');
+      if (cEngineer) cEngineer.textContent = cajetinMetadata.engineer;
+      const cTitle = document.getElementById('cajetin-cell-title');
+      if (cTitle) cTitle.textContent = cajetinMetadata.title;
+      const cCode = document.getElementById('cajetin-cell-code');
+      if (cCode) cCode.textContent = cajetinMetadata.docCode;
+      const cRev = document.getElementById('cajetin-cell-rev');
+      if (cRev) cRev.textContent = cajetinMetadata.rev;
+      const cSheet = document.getElementById('cajetin-cell-sheet');
+      if (cSheet) cSheet.textContent = cajetinMetadata.sheet;
+      const cDate = document.getElementById('cajetin-cell-date');
+      if (cDate) cDate.textContent = cajetinMetadata.date;
+      const cFormat = document.getElementById('cajetin-cell-format');
+      if (cFormat) cFormat.textContent = currentSheetFormat.replace('_', ' ');
+    }
+
+    let currentEditingCajetinCell = null;
+
+    function openCajetinCellEdit(cellType) {
+      currentEditingCajetinCell = cellType;
+      const modal = document.getElementById('modal-cajetin-cell-edit');
+      const titleEl = document.getElementById('modal-cajetin-title');
+      const labelEl = document.getElementById('modal-cajetin-label');
+      const inputEl = document.getElementById('modal-cajetin-input');
+      const secWrap = document.getElementById('modal-cajetin-secondary-wrap');
+      const secLabel = document.getElementById('modal-cajetin-secondary-label');
+      const secInput = document.getElementById('modal-cajetin-secondary-input');
+
+      if (cellType === 'company') {
+        titleEl.textContent = 'Editar Empresa / Membrete';
+        labelEl.textContent = 'Nombre de Empresa:';
+        inputEl.value = cajetinMetadata.company;
+        secWrap.classList.remove('hidden');
+        secLabel.textContent = 'Subtítulo / Departamento:';
+        secInput.value = cajetinMetadata.companySub;
+      } else if (cellType === 'project') {
+        titleEl.textContent = 'Editar Proyecto / Ubicación';
+        labelEl.textContent = 'Nombre de Proyecto / Subestación:';
+        inputEl.value = cajetinMetadata.project;
+        secWrap.classList.remove('hidden');
+        secLabel.textContent = 'Ingeniero Responsable:';
+        secInput.value = cajetinMetadata.engineer;
+      } else if (cellType === 'drawing') {
+        titleEl.textContent = 'Editar Diagrama / Código';
+        labelEl.textContent = 'Título del Plano:';
+        inputEl.value = cajetinMetadata.title;
+        secWrap.classList.remove('hidden');
+        secLabel.textContent = 'Código de Documento:';
+        secInput.value = cajetinMetadata.docCode;
+      } else if (cellType === 'meta') {
+        titleEl.textContent = 'Editar Control de Plano';
+        labelEl.textContent = 'Revisión (ej. 1.0, Rev A):';
+        inputEl.value = cajetinMetadata.rev;
+        secWrap.classList.remove('hidden');
+        secLabel.textContent = 'Paginación / Hoja (ej. 1 / 1):';
+        secInput.value = cajetinMetadata.sheet;
+      }
+
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeCajetinCellModal() {
+      const modal = document.getElementById('modal-cajetin-cell-edit');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function saveCajetinCellEdit() {
+      saveHistoryState();
+      const inputEl = document.getElementById('modal-cajetin-input');
+      const secInput = document.getElementById('modal-cajetin-secondary-input');
+
+      if (currentEditingCajetinCell === 'company') {
+        cajetinMetadata.company = inputEl.value;
+        cajetinMetadata.companySub = secInput.value;
+      } else if (currentEditingCajetinCell === 'project') {
+        cajetinMetadata.project = inputEl.value;
+        cajetinMetadata.engineer = secInput.value;
+      } else if (currentEditingCajetinCell === 'drawing') {
+        cajetinMetadata.title = inputEl.value;
+        cajetinMetadata.docCode = secInput.value;
+      } else if (currentEditingCajetinCell === 'meta') {
+        cajetinMetadata.rev = inputEl.value;
+        cajetinMetadata.sheet = secInput.value;
+      }
+
+      renderCajetin();
+      closeCajetinCellModal();
+      showNotification('Metadatos de cajetín actualizados.');
+    }
+
+    // ========================================================
+    // Undo / Redo History Controller
+    // ========================================================
+    let historyStack = [];
+    let redoStack = [];
+
+    function saveHistoryState() {
+      const snapshot = {
+        elements: JSON.parse(JSON.stringify(placedCanvasElements)),
+        routes: JSON.parse(JSON.stringify(canvasBusRoutes)),
+        cajetin: JSON.parse(JSON.stringify(cajetinMetadata))
+      };
+      historyStack.push(snapshot);
+      if (historyStack.length > 50) historyStack.shift();
+      redoStack = [];
+      updateUndoRedoUI();
+    }
+
+    function undo() {
+      if (historyStack.length === 0) return;
+      const currentSnapshot = {
+        elements: JSON.parse(JSON.stringify(placedCanvasElements)),
+        routes: JSON.parse(JSON.stringify(canvasBusRoutes)),
+        cajetin: JSON.parse(JSON.stringify(cajetinMetadata))
+      };
+      redoStack.push(currentSnapshot);
+      const prev = historyStack.pop();
+      placedCanvasElements = prev.elements;
+      canvasBusRoutes = prev.routes;
+      cajetinMetadata = prev.cajetin;
+      selectedPlacedInstanceId = null;
+      selectedRouteId = null;
+      renderPlacedCanvasElements();
+      renderBusRoutes();
+      renderCajetin();
+      updateUndoRedoUI();
+      showNotification('Deshacer (Undo)');
+    }
+
+    function redo() {
+      if (redoStack.length === 0) return;
+      const currentSnapshot = {
+        elements: JSON.parse(JSON.stringify(placedCanvasElements)),
+        routes: JSON.parse(JSON.stringify(canvasBusRoutes)),
+        cajetin: JSON.parse(JSON.stringify(cajetinMetadata))
+      };
+      historyStack.push(currentSnapshot);
+      const next = redoStack.pop();
+      placedCanvasElements = next.elements;
+      canvasBusRoutes = next.routes;
+      cajetinMetadata = next.cajetin;
+      renderPlacedCanvasElements();
+      renderBusRoutes();
+      renderCajetin();
+      updateUndoRedoUI();
+      showNotification('Rehacer (Redo)');
+    }
+
+    function updateUndoRedoUI() {
+      const btnUndo = document.getElementById('btn-undo');
+      const btnRedo = document.getElementById('btn-redo');
+      if (btnUndo) {
+        btnUndo.disabled = historyStack.length === 0;
+        btnUndo.className = historyStack.length > 0
+          ? "p-1.5 rounded hover:bg-white text-slate-700 hover:text-blue-700 font-medium transition-all flex items-center justify-center cursor-pointer shadow-2xs"
+          : "p-1.5 rounded text-slate-400 font-medium transition-all flex items-center justify-center opacity-40 cursor-not-allowed";
+      }
+      if (btnRedo) {
+        btnRedo.disabled = redoStack.length === 0;
+        btnRedo.className = redoStack.length > 0
+          ? "p-1.5 rounded hover:bg-white text-slate-700 hover:text-blue-700 font-medium transition-all flex items-center justify-center cursor-pointer shadow-2xs"
+          : "p-1.5 rounded text-slate-400 font-medium transition-all flex items-center justify-center opacity-40 cursor-not-allowed";
+      }
+    }
+
+    // ========================================================
+    // BUS Orthogonal Routing & Magnetic Pin Snapping Controller
+    // ========================================================
+    let canvasBusRoutes = [];
+    let selectedRouteId = null;
+    let isDrawingBusRoute = false;
+    let busRouteDragStart = null;
+    let busRouteCurrentPoint = null;
+    let hoveredSnapTerminal = null;
+
+    // Terminal Pin Definitions per Device Category
+    function getDeviceTerminals(item) {
+      const cat = (item.category || '').toUpperCase();
+      const ansi = (item.ansi || '').toUpperCase();
+      let pins = [];
+
+      if (cat === 'BREAKER' || ansi.includes('52')) {
+        pins = [
+          { id: 'pin_1', relX: 65, relY: 8, label: '1', role: 'Input (Top)' },
+          { id: 'pin_2', relX: 65, relY: 72, label: '2', role: 'Output (Bottom)' }
+        ];
+      } else if (cat === 'CT_VT' || ansi.includes('VT') || ansi.includes('CT')) {
+        if (ansi.includes('VT') || (item.name && item.name.toLowerCase().includes('voltage'))) {
+          pins = [
+            { id: 'pin_H1', relX: 16, relY: 30, label: 'H1', role: 'Primary HV 1' },
+            { id: 'pin_H2', relX: 16, relY: 50, label: 'H2', role: 'Primary HV 2' },
+            { id: 'pin_X1', relX: 108, relY: 30, label: 'X1', role: 'Secondary LV 1' },
+            { id: 'pin_X2', relX: 108, relY: 50, label: 'X2', role: 'Secondary LV 2' }
+          ];
+        } else {
+          pins = [
+            { id: 'pin_P1', relX: 16, relY: 45, label: 'P1', role: 'Primary Bar In' },
+            { id: 'pin_P2', relX: 114, relY: 45, label: 'P2', role: 'Primary Bar Out' },
+            { id: 'pin_S1', relX: 57, relY: 10, label: 'S1', role: 'Secondary Tap 1' },
+            { id: 'pin_S2', relX: 73, relY: 10, label: 'S2', role: 'Secondary Tap 2' }
+          ];
+        }
+      } else if (cat === 'XFMR' || ansi.includes('XFMR')) {
+        pins = [
+          { id: 'pin_H1', relX: 18, relY: 28, label: 'H1', role: 'HV Winding 1' },
+          { id: 'pin_H2', relX: 18, relY: 52, label: 'H2', role: 'HV Winding 2' },
+          { id: 'pin_X1', relX: 110, relY: 28, label: 'X1', role: 'LV Winding 1' },
+          { id: 'pin_X2', relX: 110, relY: 52, label: 'X2', role: 'LV Winding 2' }
+        ];
+      } else {
+        // Protection Relay ANSI 50/51/87/21
+        pins = [
+          { id: 'pin_1', relX: 18, relY: 28, label: '1', role: 'CT Input A' },
+          { id: 'pin_2', relX: 18, relY: 48, label: '2', role: 'CT Input B' },
+          { id: 'pin_3', relX: 112, relY: 28, label: '3', role: 'Trip Contact NO' },
+          { id: 'pin_4', relX: 112, relY: 48, label: '4', role: 'Trip Common' }
+        ];
+      }
+
+      return pins.map(p => ({
+        ...p,
+        instanceId: item.instanceId,
+        deviceName: item.name,
+        absX: item.x + p.relX,
+        absY: item.y + p.relY
+      }));
+    }
+
+    function findNearestTerminal(x, y, threshold = 14) {
+      let nearest = null;
+      let minDist = threshold;
+
+      placedCanvasElements.forEach(item => {
+        const terminals = getDeviceTerminals(item);
+        terminals.forEach(t => {
+          const dist = Math.hypot(x - t.absX, y - t.absY);
+          if (dist < minDist) {
+            minDist = dist;
+            nearest = t;
+          }
+        });
+      });
+
+      return nearest;
+    }
+
+    function renderBusRoutes() {
+      const svg = document.getElementById('cad-bus-routes-svg');
+      if (!svg) return;
+
+      let html = '';
+
+      // Draw confirmed routes
+      canvasBusRoutes.forEach(r => {
+        const isSelected = r.id === selectedRouteId;
+        const strokeColor = isSelected ? '#2563eb' : '#0f172a';
+        const strokeWidth = isSelected ? '4' : '3';
+        const d = `M ${r.x1} ${r.y1} L ${r.cornerX} ${r.y1} L ${r.cornerX} ${r.y2} L ${r.x2} ${r.y2}`;
+
+        // Path with pointer events for click, right-click and dblclick
+        html += `
+          <g id="route-group-${r.id}" class="pointer-events-auto cursor-pointer" 
+             oncontextmenu="handleRouteContextMenu(event, '${r.id}')" 
+             onclick="handleRouteClick(event, '${r.id}')"
+             ondblclick="handleRouteDblClick(event, '${r.id}')">
+            <!-- Invisible hit-target line for easy clicking -->
+            <path d="${d}" fill="none" stroke="transparent" stroke-width="14" />
+            ${isSelected ? `<path d="${d}" fill="none" stroke="#60a5fa" stroke-width="8" stroke-opacity="0.4" stroke-linecap="round" stroke-linejoin="round" />` : ''}
+            <!-- Main bus conductor path -->
+            <path d="${d}" fill="none" stroke="${strokeColor}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" />
+            
+            <!-- Connection Terminals / Solder Node Dots -->
+            <circle cx="${r.x1}" cy="${r.y1}" r="${r.fromTerminal ? 4.5 : 3.5}" fill="${r.fromTerminal ? '#2563eb' : (isSelected ? '#2563eb' : '#0f172a')}" stroke="#ffffff" stroke-width="1.5" />
+            <circle cx="${r.x2}" cy="${r.y2}" r="${r.toTerminal ? 4.5 : 3.5}" fill="${r.toTerminal ? '#2563eb' : (isSelected ? '#2563eb' : '#0f172a')}" stroke="#ffffff" stroke-width="1.5" />
+            
+            <!-- Bus Alphanumeric Label if enabled -->
+            ${r.showLabel && r.label ? `
+              <text x="${(r.x1 + r.x2) / 2}" y="${Math.min(r.y1, r.y2) - 8}" 
+                    font-size="9" font-family="monospace" font-weight="bold" fill="${isSelected ? '#1d4ed8' : '#0f172a'}" 
+                    text-anchor="middle" class="select-none pointer-events-none filter drop-shadow-xs">
+                ${r.label}
+              </text>
+            ` : ''}
+          </g>
+        `;
+      });
+
+      // Draw active preview route while dragging
+      if (isDrawingBusRoute && busRouteDragStart && busRouteCurrentPoint) {
+        const x1 = busRouteDragStart.x;
+        const y1 = busRouteDragStart.y;
+        const x2 = busRouteCurrentPoint.x;
+        const y2 = busRouteCurrentPoint.y;
+        const cornerX = x2;
+        const previewD = `M ${x1} ${y1} L ${cornerX} ${y1} L ${cornerX} ${y2}`;
+
+        html += `
+          <g class="pointer-events-none">
+            <path d="${previewD}" fill="none" stroke="#2563eb" stroke-width="3" stroke-dasharray="6,4" stroke-linecap="round" stroke-linejoin="round" />
+            <circle cx="${x1}" cy="${y1}" r="4" fill="#2563eb" stroke="#ffffff" stroke-width="1.5" />
+            <circle cx="${x2}" cy="${y2}" r="4" fill="#2563eb" stroke="#ffffff" stroke-width="1.5" />
+          </g>
+        `;
+      }
+
+      // Draw Magnetic Pin Snap Indicator (Hovering over any equipment terminal)
+      if (hoveredSnapTerminal && activeCadTool === 'bus') {
+        const t = hoveredSnapTerminal;
+        html += `
+          <g class="pointer-events-none z-30">
+            <!-- Pulsing outer snap ring -->
+            <circle cx="${t.absX}" cy="${t.absY}" r="9" fill="none" stroke="#10b981" stroke-width="2.5" opacity="0.85" />
+            <!-- Inner snap dot -->
+            <circle cx="${t.absX}" cy="${t.absY}" r="3.5" fill="#10b981" />
+            <!-- Pin Identification Tooltip Tag -->
+            <rect x="${t.absX - 28}" y="${t.absY - 22}" width="56" height="13" rx="3" fill="#064e3b" opacity="0.9" />
+            <text x="${t.absX}" y="${t.absY - 13}" font-size="7.5" font-family="monospace" font-weight="bold" fill="#ffffff" text-anchor="middle">
+              ${t.label} (${t.role.split(' ')[0]})
+            </text>
+          </g>
+        `;
+      }
+
+      svg.innerHTML = html;
+    }
+
+    function handleRouteContextMenu(e, routeId) {
+      e.preventDefault();
+      e.stopPropagation();
+      selectedRouteId = routeId;
+      selectedPlacedInstanceId = null;
+      renderBusRoutes();
+      renderPlacedCanvasElements();
+      const r = canvasBusRoutes.find(route => route.id === routeId);
+      const connInfo = r && (r.fromTerminal || r.toTerminal) 
+        ? ` [Conectado: ${r.fromTerminal ? r.fromTerminal.pinId : 'Línea'} ➔ ${r.toTerminal ? r.toTerminal.pinId : 'Línea'}]` 
+        : '';
+      showNotification(`Ruta seleccionada: ${r ? r.label : 'BUS'}${connInfo} (Presione 'Supr' para eliminar)`);
+    }
+
+    function handleRouteClick(e, routeId) {
+      e.stopPropagation();
+      if (activeCadTool === 'select') {
+        selectedRouteId = routeId;
+        selectedPlacedInstanceId = null;
+        renderBusRoutes();
+        renderPlacedCanvasElements();
+      }
+    }
+
+    function handleRouteDblClick(e, routeId) {
+      e.stopPropagation();
+      if (activeCadTool === 'select') {
+        openBusPropertiesModal(routeId);
+      }
+    }
+
+    let currentEditingRouteId = null;
+
+    function openBusPropertiesModal(routeId) {
+      currentEditingRouteId = routeId;
+      const route = canvasBusRoutes.find(r => r.id === routeId);
+      if (!route) return;
+
+      const modal = document.getElementById('modal-bus-properties');
+      const input = document.getElementById('bus-prop-label-input');
+      const checkbox = document.getElementById('bus-prop-show-label-checkbox');
+
+      if (input) input.value = route.label || '';
+      if (checkbox) checkbox.checked = !!route.showLabel;
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeBusPropertiesModal() {
+      const modal = document.getElementById('modal-bus-properties');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function saveBusProperties() {
+      if (!currentEditingRouteId) return;
+      const route = canvasBusRoutes.find(r => r.id === currentEditingRouteId);
+      if (!route) return;
+
+      saveHistoryState();
+      const input = document.getElementById('bus-prop-label-input');
+      const checkbox = document.getElementById('bus-prop-show-label-checkbox');
+
+      route.label = input ? input.value : route.label;
+      route.showLabel = checkbox ? checkbox.checked : true;
+
+      renderBusRoutes();
+      closeBusPropertiesModal();
+      showNotification(`Propiedades de ${route.label} guardadas.`);
+    }
+
+    function handleSheetBackgroundClick(e) {
+      if (e.target.id === 'engineering-sheet-boundary' || e.target.id === 'placed-cad-elements-container' || e.target.id === 'cad-bus-routes-svg') {
+        selectedPlacedInstanceId = null;
+        selectedRouteId = null;
+        renderPlacedCanvasElements();
+        renderBusRoutes();
+      }
+    }
+
+    function initBusRoutingEvents() {
+      const sheet = document.getElementById('engineering-sheet-boundary');
+      if (!sheet) return;
+
+      sheet.addEventListener('mousedown', (e) => {
+        if (activeCadTool !== 'bus' || e.button !== 0) return;
+        const rect = sheet.getBoundingClientRect();
+        const scale = currentZoom / 100;
+        const rawX = (e.clientX - rect.left) / scale;
+        const rawY = (e.clientY - rect.top) / scale;
+
+        // Exclusion zone check: strictly above cajetin
+        const maxRouteY = sheet.offsetHeight - CAJETIN_HEIGHT - 6;
+        if (rawY > maxRouteY) return;
+
+        // Check for magnetic terminal snap on start point
+        const nearTerm = findNearestTerminal(rawX, rawY, 14);
+        let x, y, termInfo = null;
+
+        if (nearTerm) {
+          x = nearTerm.absX;
+          y = nearTerm.absY;
+          termInfo = {
+            instanceId: nearTerm.instanceId,
+            pinId: nearTerm.id,
+            label: nearTerm.label,
+            relX: nearTerm.relX,
+            relY: nearTerm.relY
+          };
+          showNotification(`Enganchado a ${nearTerm.deviceName.split(' ')[0]} : Borne ${nearTerm.label}`);
+        } else {
+          x = snapCoord(Math.max(5, Math.min(sheet.offsetWidth - 10, rawX)));
+          y = snapCoord(Math.max(5, Math.min(maxRouteY, rawY)));
+        }
+
+        isDrawingBusRoute = true;
+        busRouteDragStart = { x, y, terminal: termInfo };
+        busRouteCurrentPoint = { x, y, terminal: termInfo };
+        renderBusRoutes();
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        const sheet = document.getElementById('engineering-sheet-boundary');
+        if (!sheet) return;
+        const rect = sheet.getBoundingClientRect();
+        const scale = currentZoom / 100;
+        const rawX = (e.clientX - rect.left) / scale;
+        const rawY = (e.clientY - rect.top) / scale;
+        const maxRouteY = sheet.offsetHeight - CAJETIN_HEIGHT - 6;
+
+        // Magnetic Pin Detection while in BUS mode
+        if (activeCadTool === 'bus') {
+          const nearTerm = findNearestTerminal(rawX, rawY, 14);
+          if (nearTerm) {
+            hoveredSnapTerminal = nearTerm;
+          } else {
+            hoveredSnapTerminal = null;
+          }
+        } else {
+          hoveredSnapTerminal = null;
+        }
+
+        if (isDrawingBusRoute && busRouteDragStart) {
+          let curX, curY, curTerm = null;
+
+          if (hoveredSnapTerminal) {
+            curX = hoveredSnapTerminal.absX;
+            curY = hoveredSnapTerminal.absY;
+            curTerm = {
+              instanceId: hoveredSnapTerminal.instanceId,
+              pinId: hoveredSnapTerminal.id,
+              label: hoveredSnapTerminal.label,
+              relX: hoveredSnapTerminal.relX,
+              relY: hoveredSnapTerminal.relY
+            };
+          } else {
+            curX = snapCoord(Math.max(5, Math.min(sheet.offsetWidth - 10, rawX)));
+            curY = snapCoord(Math.max(5, Math.min(maxRouteY, rawY)));
+          }
+
+          busRouteCurrentPoint = { x: curX, y: curY, terminal: curTerm };
+        }
+
+        if (activeCadTool === 'bus' || isDrawingBusRoute) {
+          renderBusRoutes();
+        }
+      });
+
+      window.addEventListener('mouseup', (e) => {
+        if (!isDrawingBusRoute) return;
+        isDrawingBusRoute = false;
+
+        if (busRouteDragStart && busRouteCurrentPoint) {
+          const dx = Math.abs(busRouteCurrentPoint.x - busRouteDragStart.x);
+          const dy = Math.abs(busRouteCurrentPoint.y - busRouteDragStart.y);
+
+          if (dx > 8 || dy > 8) {
+            saveHistoryState();
+            const fromTerm = busRouteDragStart.terminal || null;
+            const toTerm = busRouteCurrentPoint.terminal || null;
+
+            const newRoute = {
+              id: 'ROUTE-' + Date.now(),
+              x1: busRouteDragStart.x,
+              y1: busRouteDragStart.y,
+              x2: busRouteCurrentPoint.x,
+              y2: busRouteCurrentPoint.y,
+              cornerX: busRouteCurrentPoint.x,
+              cornerY: busRouteDragStart.y,
+              label: 'BUS ' + (canvasBusRoutes.length + 1),
+              showLabel: true,
+              fromTerminal: fromTerm,
+              toTerminal: toTerm
+            };
+            canvasBusRoutes.push(newRoute);
+            selectedRouteId = newRoute.id;
+
+            if (fromTerm && toTerm) {
+              showNotification(`Conexión establecida: Borne ${fromTerm.label} ➔ Borne ${toTerm.label}`);
+            } else if (fromTerm || toTerm) {
+              const activeT = fromTerm || toTerm;
+              showNotification(`Ruta ${newRoute.label} conectada al Borne ${activeT.label}`);
+            } else {
+              showNotification(`Ruta ${newRoute.label} creada con éxito.`);
+            }
+          }
+        }
+
+        busRouteDragStart = null;
+        busRouteCurrentPoint = null;
+        hoveredSnapTerminal = null;
+        renderBusRoutes();
+      });
+    }
+
+    // ========================================================
+    // Placed CAD Components in Workspace Management (Proteus Bare Schematic Logic)
     // ========================================================
     let placedCanvasElements = [];
     let selectedPlacedInstanceId = null;
 
     function placeDeviceOnCanvas(dev, x, y) {
+      saveHistoryState();
       const baseClean = (dev.baseId || dev.id).replace('DEV-', '').replace(/[^A-Za-z0-9]/g, '');
       const count = placedCanvasElements.filter(el => el.baseId === (dev.baseId || dev.id)).length + 1;
       const instanceId = `INST-${baseClean}-${count.toString().padStart(2, '0')}`;
 
-      const itemWidth = 110;
-      const itemHeight = 76;
+      const itemWidth = 125;
+      const itemHeight = 85;
+      const sheet = document.getElementById('engineering-sheet-boundary');
+      // Strict Cajetín Exclusion Zone
+      const maxY = sheet ? sheet.offsetHeight - CAJETIN_HEIGHT - itemHeight - 8 : 400;
 
       const placedEl = {
         instanceId,
@@ -2383,16 +3104,18 @@
         ansi: dev.ansi,
         rating: dev.rating,
         mfg: dev.mfg,
-        x,
-        y,
+        x: snapCoord(x),
+        y: snapCoord(Math.min(maxY, y)),
         width: itemWidth,
         height: itemHeight
       };
 
       placedCanvasElements.push(placedEl);
       selectedPlacedInstanceId = instanceId;
+      selectedRouteId = null;
       renderPlacedCanvasElements();
-      showNotification(`Componente fijado en workspace: ${instanceId}`);
+      renderBusRoutes();
+      showNotification(`Componente esquemático colocado: ${instanceId}`);
     }
 
     function renderPlacedCanvasElements() {
@@ -2403,14 +3126,15 @@
       placedCanvasElements.forEach(item => {
         const isSelected = item.instanceId === selectedPlacedInstanceId;
         const ansiCode = (item.ansi || '').split(' ')[0] || 'ANSI';
-        const symbolSvg = getCadSymbolSvgWithTerminals(item.category, ansiCode, item.name);
+        const symbolSvg = getCadSymbolSvgWithTerminals(item.category, ansiCode, item.name, item.instanceId, item.rating, true);
 
         const el = document.createElement('div');
         el.id = `placed-el-${item.instanceId}`;
-        el.className = `absolute cursor-move select-none transition-shadow rounded-lg p-1 flex flex-col items-center justify-between ${
+        // Proteus Logic: Pure unboxed schematic element without card background or borders
+        el.className = `absolute cursor-move select-none p-1 transition-all ${
           isSelected 
-            ? 'ring-2 ring-blue-600 bg-white/95 shadow-lg border border-blue-400 z-20' 
-            : 'hover:ring-1 hover:ring-blue-300 bg-white/85 hover:bg-white/95 shadow-xs border border-slate-300 z-10'
+            ? 'outline outline-1 outline-dashed outline-blue-600 bg-blue-500/5 rounded-xs z-20' 
+            : 'hover:outline hover:outline-1 hover:outline-dashed hover:outline-slate-400/60 bg-transparent z-10'
         }`;
         el.style.left = `${item.x}px`;
         el.style.top = `${item.y}px`;
@@ -2419,21 +3143,10 @@
 
         el.onmousedown = (e) => startMovingPlacedElement(e, item.instanceId);
 
+        // Bare schematic symbol rendered directly on the grid
         el.innerHTML = `
-          <!-- Instance Tag Header -->
-          <div class="w-full flex items-center justify-between pointer-events-none px-1">
-            <span class="text-[8px] font-mono font-bold ${isSelected ? 'text-blue-700' : 'text-slate-500'} truncate">${item.instanceId}</span>
-            <span class="text-[7.5px] px-1 rounded bg-slate-100 text-slate-600 font-mono font-bold">${ansiCode}</span>
-          </div>
-
-          <!-- CAD Vector Symbol with Numbered Terminals -->
-          <div class="w-full h-11 flex items-center justify-center pointer-events-none">
+          <div class="w-full h-full flex items-center justify-center pointer-events-none">
             ${symbolSvg}
-          </div>
-
-          <!-- Component Label Footer -->
-          <div class="w-full text-center pointer-events-none px-1">
-            <span class="text-[8.5px] font-bold text-slate-800 truncate block leading-tight">${item.name}</span>
           </div>
         `;
 
@@ -2443,11 +3156,15 @@
 
     function startMovingPlacedElement(e, instanceId) {
       e.stopPropagation();
+      if (activeCadTool === 'bus') return; // Do not move elements when in bus routing mode
+
       selectedPlacedInstanceId = instanceId;
+      selectedRouteId = null;
       const element = placedCanvasElements.find(el => el.instanceId === instanceId);
       if (!element) return;
 
       renderPlacedCanvasElements();
+      renderBusRoutes();
 
       const startMouseX = e.clientX;
       const startMouseY = e.clientY;
@@ -2461,22 +3178,48 @@
 
         const sheet = document.getElementById('engineering-sheet-boundary');
         const maxX = sheet ? sheet.offsetWidth - element.width - 5 : 700;
-        const maxY = sheet ? sheet.offsetHeight - element.height - 5 : 450;
+        // Strict Cajetín Exclusion Zone
+        const maxY = sheet ? sheet.offsetHeight - CAJETIN_HEIGHT - element.height - 8 : 450;
 
-        element.x = Math.max(5, Math.min(maxX, Math.round(startElemX + dx)));
-        element.y = Math.max(5, Math.min(maxY, Math.round(startElemY + dy)));
+        const unsnappedX = Math.max(5, Math.min(maxX, Math.round(startElemX + dx)));
+        const unsnappedY = Math.max(5, Math.min(maxY, Math.round(startElemY + dy)));
+
+        element.x = snapCoord(unsnappedX);
+        element.y = snapCoord(unsnappedY);
 
         const domEl = document.getElementById(`placed-el-${instanceId}`);
         if (domEl) {
           domEl.style.left = `${element.x}px`;
           domEl.style.top = `${element.y}px`;
         }
+
+        // Millimetric Pin Rubberbanding: update all routes bound to this device's specific terminals
+        let routesUpdated = false;
+        canvasBusRoutes.forEach(r => {
+          if (r.fromTerminal && r.fromTerminal.instanceId === instanceId) {
+            r.x1 = element.x + r.fromTerminal.relX;
+            r.y1 = element.y + r.fromTerminal.relY;
+            routesUpdated = true;
+          }
+          if (r.toTerminal && r.toTerminal.instanceId === instanceId) {
+            r.x2 = element.x + r.toTerminal.relX;
+            r.y2 = element.y + r.toTerminal.relY;
+            r.cornerX = r.x2;
+            routesUpdated = true;
+          }
+        });
+
+        if (routesUpdated) {
+          renderBusRoutes();
+        }
       };
 
       const onMouseUp = () => {
         window.removeEventListener('mousemove', onMouseMove);
         window.removeEventListener('mouseup', onMouseUp);
+        saveHistoryState();
         renderPlacedCanvasElements();
+        renderBusRoutes();
       };
 
       window.addEventListener('mousemove', onMouseMove);
@@ -2507,6 +3250,11 @@
       renderLibraryDeviceList();
       updateLibraryPreview(selectedLibraryDeviceId);
       renderSidebarDeviceGrid();
+      updateGridSnapUI();
+      renderCajetin();
+      renderBusRoutes();
+      updateUndoRedoUI();
+      initBusRoutingEvents();
 
       // Mouse Wheel Navigation: Ctrl+wheel for vertical scroll, Shift+wheel for horizontal scroll, regular wheel for zoom
       const canvasViewport = document.getElementById('cad-canvas-viewport');
@@ -2531,12 +3279,84 @@
       }
     });
 
-    // Close on ESC key
+    // Keyboard Shortcuts: G (Grid Snap), B (Bus Tool), Ctrl+Z (Undo), Ctrl+Y (Redo), Delete (Supr), Escape
     document.addEventListener('keydown', (e) => {
+      // Ignore if user is currently typing inside an input or textarea
+      const activeTag = document.activeElement ? document.activeElement.tagName : '';
+      if (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT') {
+        if (e.key === 'Escape') {
+          closeNewProjectModal();
+          dismissCloseModal();
+          closeDeviceLibraryModal();
+          closeBusPropertiesModal();
+          closeCajetinCellModal();
+        }
+        return;
+      }
+
+      // Close on ESC key and return to SELECT mode
       if (e.key === 'Escape') {
         closeNewProjectModal();
         dismissCloseModal();
         closeDeviceLibraryModal();
+        closeBusPropertiesModal();
+        closeCajetinCellModal();
+        setCadTool('select');
+        return;
+      }
+
+      // 'G' key: Cycle Grid Snap Size (1mm -> 5mm -> 10mm)
+      if (e.key === 'g' || e.key === 'G') {
+        e.preventDefault();
+        cycleGridSnap();
+        return;
+      }
+
+      // 'B' key: Toggle BUS tool
+      if (e.key === 'b' || e.key === 'B') {
+        e.preventDefault();
+        setCadTool(activeCadTool === 'bus' ? 'select' : 'bus');
+        return;
+      }
+
+      // Undo: Ctrl + Z
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z') && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+        return;
+      }
+
+      // Redo: Ctrl + Y or Ctrl + Shift + Z
+      if (((e.ctrlKey || e.metaKey) && (e.key === 'y' || e.key === 'Y')) ||
+          ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'z' || e.key === 'Z'))) {
+        e.preventDefault();
+        redo();
+        return;
+      }
+
+      // Delete / Supr key
+      if (e.key === 'Delete' || e.key === 'Supr') {
+        if (selectedRouteId) {
+          e.preventDefault();
+          saveHistoryState();
+          const idx = canvasBusRoutes.findIndex(r => r.id === selectedRouteId);
+          if (idx !== -1) {
+            const removed = canvasBusRoutes.splice(idx, 1)[0];
+            selectedRouteId = null;
+            renderBusRoutes();
+            showNotification(`Ruta eliminada: ${removed.label}`);
+          }
+        } else if (selectedPlacedInstanceId) {
+          e.preventDefault();
+          saveHistoryState();
+          const idx = placedCanvasElements.findIndex(el => el.instanceId === selectedPlacedInstanceId);
+          if (idx !== -1) {
+            const removed = placedCanvasElements.splice(idx, 1)[0];
+            selectedPlacedInstanceId = null;
+            renderPlacedCanvasElements();
+            showNotification(`Componente eliminado: ${removed.instanceId}`);
+          }
+        }
       }
     });
   </script>
@@ -2559,6 +3379,58 @@
 
   <!-- Floating Translucent Drag Ghost Element for Canvas Drag & Drop -->
   <div id="canvas-drag-ghost" class="fixed hidden z-50 pointer-events-none transition-transform duration-75"></div>
+
+  <!-- Modal: Propiedades de Barra / Conductor (BUS) -->
+  <div id="modal-bus-properties" onclick="if(event.target === this) closeBusPropertiesModal()" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden antialiased select-none">
+    <div class="bg-white border border-slate-300 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col">
+      <div class="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+          <h3 class="text-xs font-bold text-slate-900">Propiedades de Barra / Conductor</h3>
+        </div>
+        <button onclick="closeBusPropertiesModal()" class="w-6 h-6 rounded-lg hover:bg-slate-200 text-slate-500 font-bold text-xs flex items-center justify-center">✕</button>
+      </div>
+      <div class="p-4 space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-700 font-semibold mb-1 text-[11px]">Etiqueta / Nombre del BUS:</label>
+          <input id="bus-prop-label-input" type="text" placeholder="e.g. BUS 115 kV - SE Norte" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-900 font-mono focus:outline-none focus:border-blue-600">
+        </div>
+        <div class="flex items-center gap-2 pt-1">
+          <input id="bus-prop-show-label-checkbox" type="checkbox" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+          <label for="bus-prop-show-label-checkbox" class="text-slate-700 font-medium text-[11px] cursor-pointer">Mostrar etiqueta en el plano</label>
+        </div>
+      </div>
+      <div class="px-4 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2 text-xs">
+        <button onclick="closeBusPropertiesModal()" class="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100">Cancelar</button>
+        <button onclick="saveBusProperties()" class="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-2xs">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Editar Propiedad de Cajetín -->
+  <div id="modal-cajetin-cell-edit" onclick="if(event.target === this) closeCajetinCellModal()" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden antialiased select-none">
+    <div class="bg-white border border-slate-300 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col">
+      <div class="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+          <h3 id="modal-cajetin-title" class="text-xs font-bold text-slate-900">Editar Propiedad de Cajetín</h3>
+        </div>
+        <button onclick="closeCajetinCellModal()" class="w-6 h-6 rounded-lg hover:bg-slate-200 text-slate-500 font-bold text-xs flex items-center justify-center">✕</button>
+      </div>
+      <div class="p-4 space-y-2 text-xs">
+        <label id="modal-cajetin-label" class="block text-slate-700 font-semibold text-[11px]">Valor:</label>
+        <input id="modal-cajetin-input" type="text" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-900 font-mono focus:outline-none focus:border-blue-600">
+        <div id="modal-cajetin-secondary-wrap" class="hidden pt-1">
+          <label id="modal-cajetin-secondary-label" class="block text-slate-700 font-semibold text-[11px] mb-1">Sub-propiedad:</label>
+          <input id="modal-cajetin-secondary-input" type="text" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-900 font-mono focus:outline-none focus:border-blue-600">
+        </div>
+      </div>
+      <div class="px-4 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2 text-xs">
+        <button onclick="closeCajetinCellModal()" class="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100">Cancelar</button>
+        <button onclick="saveCajetinCellEdit()" class="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-2xs">Guardar Cambios</button>
+      </div>
+    </div>
+  </div>
 
 </body>
 </html>
